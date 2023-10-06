@@ -25,7 +25,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Main
   other-modules:
       Paths_hs_web
   autogen-modules:
@@ -34,7 +34,15 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , lucid
+    , lucid-htmx
+    , servant
+    , servant-htmx
+    , servant-lucid
+    , servant-server
+    , warp
   default-language: Haskell2010
 
 executable hs-web-exe
@@ -44,11 +52,19 @@ executable hs-web-exe
   autogen-modules:
       Paths_hs_web
   hs-source-dirs:
-      app
+      src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , hs-web
+    , lucid
+    , lucid-htmx
+    , servant
+    , servant-htmx
+    , servant-lucid
+    , servant-server
+    , warp
   default-language: Haskell2010
 
 test-suite hs-web-test
@@ -62,6 +78,14 @@ test-suite hs-web-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , hs-web
+    , lucid
+    , lucid-htmx
+    , servant
+    , servant-htmx
+    , servant-lucid
+    , servant-server
+    , warp
   default-language: Haskell2010
