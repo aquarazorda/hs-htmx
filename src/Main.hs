@@ -1,27 +1,34 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Main (main) where
 
-import Network.Wai.Handler.Warp (run)
-import Servant ( Proxy(..), serve, Get, Server, Application )
-import Lucid (Html, p_, div_, ToHtml (toHtml), head_)
-import Servant.HTML.Lucid (HTML)
+import Lucid (Html, class_, div_, head_, p_, rel_, link_, href_)
 import Lucid.Htmx (useHtmx)
+import Network.Wai.Handler.Warp (run)
+import Servant
+import Servant.HTML.Lucid (HTML)
 
-type HelloWorldAPI = Get '[HTML] (Html ())
+type API =
+  "public" :> Raw
+    :<|> "hello" :> Get '[HTML] (Html ())
 
-server :: Server HelloWorldAPI
-server = return helloWorldHtml
-
-helloWorldHtml :: Html ()
-helloWorldHtml = head_ useHtmx <> div_ (p_ $ toHtml "Hello World!") 
-
-helloWorldAPI :: Proxy HelloWorldAPI
-helloWorldAPI = Proxy
+api :: Proxy API
+api = Proxy
 
 app :: Application
-app = serve helloWorldAPI server
+app = serve api server
 
 main :: IO ()
 main = run 8080 app
+
+--------------------
+
+server :: Server API
+server =
+  serveDirectoryFileServer "public"
+    :<|> return helloWorldHtml
+
+helloWorldHtml :: Html ()
+helloWorldHtml = head_ (useHtmx <> link_ [href_ "/public/styles.css", rel_ "stylesheet"]) <> div_ [class_ "bg-black"] (p_ "Hello World!")
