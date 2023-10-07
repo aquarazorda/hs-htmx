@@ -5,28 +5,16 @@
 module Routes.Home (homeRouter, HomeRouter) where
 
 import Data.Functor.Identity (Identity)
-import Lucid (Html, HtmlT)
-import Router (routePage)
-import Servant (Headers, addHeader, (:<|>)(..), Get, Post)
-import Servant.Htmx (HXPush)
+import Lucid (HtmlT)
+import Router (RouteResponse, getRoute, GETRoute)
+import Servant ((:>), Get)
+import Servant.Htmx (HXRequest)
 import Servant.HTML.Lucid (HTML)
-import State (AppM)
 
-type HomeRouter = Get '[HTML] (Html ())
-    :<|> Post '[HTML] (Headers '[HXPush] (Html ()))
+type HomeRouter = HXRequest :> Get '[HTML] RouteResponse
 
 content :: HtmlT Identity ()
-content = "This is home page."
+content = "Welcome to Morevi.ge dashboard."
 
-type GET = AppM (Html ())
-
-get :: GET
-get = pure $ routePage content
-
-type POST = AppM (Headers '[HXPush] (Html ()))
-
-post :: POST
-post = pure $ addHeader "/" content
-
-homeRouter :: GET :<|> POST
-homeRouter = get :<|> post
+homeRouter :: GETRoute
+homeRouter = getRoute $ pure content

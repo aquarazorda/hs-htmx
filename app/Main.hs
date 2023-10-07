@@ -6,7 +6,7 @@ module Main (main) where
 
 import Network.Wai.Handler.Warp (run)
 import Routes.Home (HomeRouter, homeRouter)
-import Routes.Posts (PostsRouter, postsRouter)
+import Routes.Products (ProductsRouter, productsRouter)
 import Control.Monad.Trans.Reader (ReaderT (runReaderT))
 import Servant
   ( Application,
@@ -24,7 +24,7 @@ import State (State (State), AppM, parseEnv)
 type API =
   "public" :> Raw
     :<|> HomeRouter
-    :<|> PostsRouter
+    :<|> ProductsRouter
 
 api :: Proxy API
 api = Proxy
@@ -39,7 +39,7 @@ server :: ServerT API AppM
 server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
-    :<|> postsRouter
+    :<|> productsRouter
 
 main :: IO ()
 main = do
