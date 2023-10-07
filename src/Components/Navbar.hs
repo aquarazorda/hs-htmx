@@ -32,4 +32,4 @@ navBar =
     div_ [class_ "flex items-center mb-4 space-x-1"] (h1_ [class_ "text-lg font-medium"] "HS-WEB")
       <> nav_
         [class_ "space-y-2"]
-        (navItem "/" "Home" <> navItem "/posts" "Posts")
+        (navItem "/" "Home" <> navItem "/products" "Products")
