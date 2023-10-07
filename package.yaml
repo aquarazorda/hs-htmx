@@ -31,6 +31,7 @@ dependencies:
 - servant-lucid
 - text
 - http-types
+- dotenv
 
 ghc-options:
 - -Wall

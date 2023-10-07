@@ -40,6 +40,7 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , dotenv
     , http-types
     , lucid
     , lucid-htmx
@@ -63,6 +64,7 @@ executable hs-web-exe
   build-depends:
       aeson
     , base >=4.7 && <5
+    , dotenv
     , hs-web
     , http-types
     , lucid
@@ -88,6 +90,7 @@ test-suite hs-web-test
   build-depends:
       aeson
     , base >=4.7 && <5
+    , dotenv
     , hs-web
     , http-types
     , lucid
