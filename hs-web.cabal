@@ -27,9 +27,11 @@ library
   exposed-modules:
       Components.Content.Header
       Components.Navbar
+      Http
       Router
       Routes.Home
       Routes.Posts
+      State
   other-modules:
       Paths_hs_web
   autogen-modules:
@@ -40,7 +42,10 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
     , dotenv
+    , http-client
+    , http-conduit
     , http-types
     , lucid
     , lucid-htmx
@@ -49,6 +54,7 @@ library
     , servant-lucid
     , servant-server
     , text
+    , transformers
     , warp
   default-language: Haskell2010
 
@@ -64,8 +70,11 @@ executable hs-web-exe
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
     , dotenv
     , hs-web
+    , http-client
+    , http-conduit
     , http-types
     , lucid
     , lucid-htmx
@@ -74,6 +83,7 @@ executable hs-web-exe
     , servant-lucid
     , servant-server
     , text
+    , transformers
     , warp
   default-language: Haskell2010
 
@@ -90,8 +100,11 @@ test-suite hs-web-test
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
     , dotenv
     , hs-web
+    , http-client
+    , http-conduit
     , http-types
     , lucid
     , lucid-htmx
@@ -100,5 +113,6 @@ test-suite hs-web-test
     , servant-lucid
     , servant-server
     , text
+    , transformers
     , warp
   default-language: Haskell2010

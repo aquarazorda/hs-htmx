@@ -32,6 +32,10 @@ dependencies:
 - text
 - http-types
 - dotenv
+- transformers
+- http-client
+- http-conduit
+- bytestring
 
 ghc-options:
 - -Wall

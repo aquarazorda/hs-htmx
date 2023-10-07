@@ -4,50 +4,38 @@
 
 module Main (main) where
 
-import Configuration.Dotenv (defaultConfig, loadFile)
-import Configuration.Dotenv.Environment (lookupEnv)
 import Network.Wai.Handler.Warp (run)
 import Routes.Home (HomeRouter, homeRouter)
 import Routes.Posts (PostsRouter, postsRouter)
+import Control.Monad.Trans.Reader (ReaderT (runReaderT))
 import Servant
   ( Application,
     Proxy (..),
     Raw,
-    Server,
+    Handler,
     serve,
     serveDirectoryFileServer,
     type (:<|>) (..),
-    type (:>),
+    type (:>), HasServer (ServerT),
   )
+import Servant.Server (hoistServer)
+import State (State (State), AppM, parseEnv)
 
 type API =
   "public" :> Raw
     :<|> HomeRouter
     :<|> PostsRouter
 
-data Env = Env
-  { wpUrl :: String,
-    wpKey :: String,
-    wpSecret :: String
-  } deriving (Show)
-
-parseEnv :: IO (Maybe Env)
-parseEnv = do
-  loadFile defaultConfig
-  mUrl <- lookupEnv "wpUrl"
-  mKey <- lookupEnv "wpKey"
-  mSecret <- lookupEnv "wpSecret"
-  case (mUrl, mKey, mSecret) of
-    (Just url, Just key, Just secret) -> pure $ Just $ Env url key secret
-    _ -> pure Nothing
-
 api :: Proxy API
 api = Proxy
 
-app :: Application
-app = serve api server
+nt :: State -> AppM a -> Handler a
+nt s x = runReaderT x s
 
-server :: Server API
+app :: State -> Application
+app s = serve api $ hoistServer api (nt s) server
+
+server :: ServerT API AppM
 server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
@@ -56,6 +44,8 @@ server =
 main :: IO ()
 main = do
   env <- parseEnv
-  print env
-  putStrLn "Running on http://localhost:8080"
-  run 8080 app
+  case env of
+    Nothing -> putStrLn "Failed to parse .env file."
+    Just e -> do
+      putStrLn "Running on http://localhost:8080"
+      run 8080 $ app (State e)

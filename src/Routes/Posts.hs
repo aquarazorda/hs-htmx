@@ -4,25 +4,50 @@
 
 module Routes.Posts (postsRouter, PostsRouter) where
 
-import Data.Functor.Identity (Identity)
-import Lucid (Html, HtmlT, div_, class_)
-import Router (routePage)
-import Servant (Handler, Headers, addHeader, (:>), (:<|>)(..), Get, Post, Server)
-import Servant.Htmx (HXPush)
-import Servant.HTML.Lucid (HTML)
 import Components.Content.Header (contentHeader)
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Data.Aeson (FromJSON, decode, parseJSON, withObject, (.:))
+import Data.Functor.Identity (Identity)
+import Http (getWpResponse)
+import Lucid (Html, HtmlT, class_, div_)
+import Router (routePage)
+import Servant (Get, Headers, Post, addHeader, (:<|>) (..), (:>))
+import Servant.HTML.Lucid (HTML)
+import Servant.Htmx (HXPush)
+import State (AppM)
 
-type PostsRouter = "posts" :> Get '[HTML] (Html ())
+type PostsRouter =
+  "posts" :> Get '[HTML] (Html ())
     :<|> "posts" :> Post '[HTML] (Headers '[HXPush] (Html ()))
+
+data WpPost = WpPost {id :: Int, name :: String} deriving (Show)
+
+instance FromJSON WpPost where
+  parseJSON = withObject "WpPost" $ \v ->
+    WpPost
+      <$> v .: "id"
+      <*> v .: "name"
+
+wcGetPosts :: AppM (Maybe [WpPost])
+wcGetPosts = do
+  res <- getWpResponse "/products?per_page=1"
+  pure $ decode res
 
 content :: HtmlT Identity ()
 content = contentHeader "Posts" "" <> div_ [class_ "w-full overflow-auto"] "This is posts page."
 
-get :: Handler (Html ())
-get = pure $ routePage content
+type GET = AppM (Html ())
 
-post :: Handler (Headers '[HXPush] (Html ()))
+get :: GET
+get = do
+  posts <- wcGetPosts
+  liftIO $ print posts
+  pure $ routePage content
+
+type POST = AppM (Headers '[HXPush] (Html ()))
+
+post :: POST
 post = pure $ addHeader "/posts" content
 
-postsRouter :: Server PostsRouter
+postsRouter :: GET :<|> POST
 postsRouter = get :<|> post
