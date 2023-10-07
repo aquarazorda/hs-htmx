@@ -29,6 +29,8 @@ dependencies:
 - lucid-htmx
 - servant-htmx
 - servant-lucid
+- text
+- http-types
 
 ghc-options:
 - -Wall
@@ -42,12 +44,13 @@ ghc-options:
 - -Wredundant-constraints
 
 library:
-  source-dirs: src
+  source-dirs: 
+    - src
 
 executables:
   hs-web-exe:
     main:                Main.hs
-    source-dirs:         src
+    source-dirs:         app
     ghc-options:
     - -threaded
     - -rtsopts
