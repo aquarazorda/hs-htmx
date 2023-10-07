@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Navbar (navBar) where
+module Components.Navbar (navBar) where
 
 import Data.Text (Text)
 import Lucid

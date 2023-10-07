@@ -25,7 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Navbar
+      Components.Content.Header
+      Components.Navbar
       Router
       Routes.Home
       Routes.Posts

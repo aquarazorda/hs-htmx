@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Router (routePage) where
-  
-import Lucid (HtmlT, Html, head_, link_, href_, rel_, id_, class_, div_, body_)
+
+import Components.Navbar (navBar)
 import Data.Functor.Identity (Identity)
+import Lucid (Html, HtmlT, body_, class_, div_, head_, href_, id_, link_, main_, rel_)
 import Lucid.Htmx (useHtmx)
-import Navbar (navBar)
 
 routePage :: HtmlT Identity () -> Html ()
-routePage content = head_ (useHtmx <> link_ [href_ "/public/styles.css", rel_ "stylesheet"])
-    <> body_ [class_ "flex"] navBar <> div_ [class_ "flex-grow", id_ "router-outlet"] content
+routePage content =
+  head_ (useHtmx <> link_ [href_ "/public/styles.css", rel_ "stylesheet"])
+    <> body_ [class_ "flex"] navBar
+    <> div_
+      (main_ [class_ "flex-grow p-6", id_ "router-outlet"] content)

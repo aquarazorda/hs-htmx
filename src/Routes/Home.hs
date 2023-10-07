@@ -21,7 +21,7 @@ get :: Handler (Html ())
 get = pure $ routePage content
 
 post :: Handler (Headers '[HXPush] (Html ()))
-post = pure $ addHeader "/" $ div_ content
+post = pure $ addHeader "/" content
 
 homeRouter :: Server HomeRouter
 homeRouter = get :<|> post
