@@ -5,3 +5,5 @@ extra
 public/styles.css
 .DS_Store
 .env
+*.lock
+*.lockb

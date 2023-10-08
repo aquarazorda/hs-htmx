@@ -1,1 +1,3 @@
-# hs-web
+# hs-htmx
+
+Haskell + HTMX + TailwindCSS
