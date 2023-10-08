@@ -17,4 +17,4 @@ content :: HtmlT Identity ()
 content = "Welcome to Morevi.ge dashboard."
 
 homeRouter :: GETRoute
-homeRouter = getRoute $ pure content
+homeRouter = getRoute "/" $ pure content

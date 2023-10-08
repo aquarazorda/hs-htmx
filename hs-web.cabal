@@ -27,6 +27,7 @@ library
   exposed-modules:
       Components.Content.Header
       Components.Navbar
+      Components.Spinner
       Data.WC.Category
       Data.WC.Product
       Http

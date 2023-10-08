@@ -21,7 +21,6 @@ import Prelude hiding (id)
 
 type ProductsRouter =
   "products" :> HXRequest :> Get '[HTML] RouteResponse
-  :<|> "products" :> Capture "id" Int :> HXRequest :> Get '[HTML] RouteResponse
 
 wcGetPosts :: AppM (Maybe [WpPost])
 wcGetPosts = do
@@ -68,4 +67,4 @@ postItem (WpPost {id = cId, name = cName, categories = cCategories, price = cPri
     categoryItem (Cat.WpCategory {Cat.name = cat}) = span_ [class_ "px-2 py-1 bg-red-200 text-red-800 rounded-md mr-1"] $ toHtml cat
 
 productsRouter :: GETRoute
-productsRouter = getRoute content
+productsRouter = getRoute "/products" content
