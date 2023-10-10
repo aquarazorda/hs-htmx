@@ -2,18 +2,10 @@
 
 module Components.Navbar (navBar) where
 
-import Data.Text (Text)
-import Lucid
-  ( Html,
-    ToHtml (toHtml),
-    aside_,
-    button_,
-    class_,
-    div_,
-    h1_,
-    nav_,
-  )
-import Lucid.Htmx (hxSwap_, hxTarget_, hxGet_, hxIndicator_)
+import           Data.Text  (Text)
+import           Lucid      (Html, ToHtml (toHtml), aside_, button_, class_,
+                             div_, h1_, nav_)
+import           Lucid.Htmx (hxGet_, hxIndicator_, hxSwap_, hxTarget_)
 
 navItem :: Text -> Text -> Html ()
 navItem path text =
@@ -33,4 +25,4 @@ navBar =
     div_ [class_ "flex items-center mb-4 space-x-1"] (h1_ [class_ "text-lg font-medium"] "HS-WEB")
       <> nav_
         [class_ "space-y-2"]
-        (navItem "/" "Home" <> navItem "/products" "Products")
+        (navItem "/" "Home" <> navItem "/products" "Products" <> navItem "/categories" "Categories")

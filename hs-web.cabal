@@ -28,6 +28,7 @@ library
       Components.Navbar
       Components.Product.Item
       Components.Spinner
+      Components.Table.Simple
       Data.WC.Category
       Data.WC.Product
       Http
@@ -36,6 +37,7 @@ library
       Postgres.Product
       Postgres.Track
       Router
+      Routes.Categories
       Routes.Home
       Routes.Products
       State
@@ -51,13 +53,13 @@ library
     , base >=4.7 && <5
     , bytestring
     , dotenv
-    , hasql
     , http-client
     , http-conduit
     , http-types
     , lucid
     , lucid-htmx
     , opaleye
+    , postgresql-simple
     , product-profunctors
     , servant
     , servant-htmx
@@ -82,7 +84,6 @@ executable hs-web-exe
     , base >=4.7 && <5
     , bytestring
     , dotenv
-    , hasql
     , hs-web
     , http-client
     , http-conduit
@@ -90,6 +91,7 @@ executable hs-web-exe
     , lucid
     , lucid-htmx
     , opaleye
+    , postgresql-simple
     , product-profunctors
     , servant
     , servant-htmx
@@ -115,7 +117,6 @@ test-suite hs-web-test
     , base >=4.7 && <5
     , bytestring
     , dotenv
-    , hasql
     , hs-web
     , http-client
     , http-conduit
@@ -123,6 +124,7 @@ test-suite hs-web-test
     , lucid
     , lucid-htmx
     , opaleye
+    , postgresql-simple
     , product-profunctors
     , servant
     , servant-htmx

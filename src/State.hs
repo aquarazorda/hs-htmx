@@ -1,25 +1,25 @@
 module State where
 
-import Control.Monad.Trans.Reader (ReaderT)
-import Servant (Handler)
-import Data.Text (Text, pack)
-import Configuration.Dotenv.Environment (lookupEnv)
-import Data.ByteString (ByteString)
-import Data.Text.Encoding (encodeUtf8)
-import Hasql.Connection (Connection)
+import           Configuration.Dotenv.Environment (lookupEnv)
+import           Control.Monad.Trans.Reader       (ReaderT)
+import           Data.ByteString                  (ByteString)
+import           Data.Text                        (Text, pack)
+import           Data.Text.Encoding               (encodeUtf8)
+import           Database.PostgreSQL.Simple       (Connection)
+import           Servant                          (Handler)
 
 type AppM = ReaderT State Handler
 
 data WpEnv = WpEnv {
-  wpUrl :: Text,
+  wpUrl   :: Text,
   wpToken :: Text
 } deriving (Show)
 
 data DbEnv = DbEnv {
-  dbUrl :: ByteString,
-  dbUsername :: ByteString,
-  dbPass :: ByteString,
-  dbName :: ByteString
+  dbUrl      :: String,
+  dbUsername :: String,
+  dbPass     :: String,
+  dbName     :: String
 } deriving (Show)
 
 data State = State
@@ -36,7 +36,7 @@ parseWpEnv = do
   mToken <- lookupEnv "wpToken"
   case (mUrl, mToken) of
     (Just url, Just token) -> pure $ Just $ WpEnv (pack url) (pack token)
-    _ -> pure Nothing
+    _                      -> pure Nothing
 
 parseDbEnv :: IO (Maybe DbEnv)
 parseDbEnv = do
@@ -45,6 +45,6 @@ parseDbEnv = do
     mPass <- lookupEnv "DB_PASSWORD"
     mName <- lookupEnv "DB_NAME"
     case (mUrl, mUsername, mPass, mName) of
-        (Just url, Just username, Just pass, Just name) -> 
-            pure $ Just $ DbEnv (packStr url) (packStr username) (packStr pass) (packStr name)
+        (Just url, Just username, Just pass, Just name) ->
+            pure $ Just $ DbEnv url username pass name
         _ -> pure Nothing

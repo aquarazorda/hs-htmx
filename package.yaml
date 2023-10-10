@@ -35,7 +35,7 @@ dependencies:
 - http-client
 - http-conduit
 - bytestring
-- hasql
+- postgresql-simple
 - opaleye
 - product-profunctors
 

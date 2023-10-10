@@ -1,32 +1,33 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Main (main) where
 
-import Network.Wai.Handler.Warp (run)
-import Routes.Home (HomeRouter, homeRouter)
-import Routes.Products (ProductsRouter, productsRouter)
-import Control.Monad.Trans.Reader (ReaderT (runReaderT))
-import Servant
-  ( Application,
-    Proxy (..),
-    Raw,
-    Handler,
-    serve,
-    serveDirectoryFileServer,
-    type (:<|>) (..),
-    type (:>), HasServer (ServerT),
-  )
-import Servant.Server (hoistServer)
-import State (State (State), AppM, parseWpEnv, parseDbEnv, DbEnv (dbUrl, dbUsername, dbPass, dbName))
-import Configuration.Dotenv (loadFile, defaultConfig)
-import Hasql.Connection (settings, acquire)
+import           Configuration.Dotenv       (defaultConfig, loadFile)
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT))
+import           Database.PostgreSQL.Simple (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
+                                             defaultConnectInfo, withConnect)
+import           Network.Wai.Handler.Warp   (run)
+import           Routes.Categories          (CategoriesRouter, categoriesRouter)
+import           Routes.Home                (HomeRouter, homeRouter)
+import           Routes.Products            (ProductsRouter, productsRouter)
+import           Servant                    (Application, Handler,
+                                             HasServer (ServerT), Proxy (..),
+                                             Raw, serve,
+                                             serveDirectoryFileServer,
+                                             type (:<|>) (..), type (:>))
+import           Servant.Server             (hoistServer)
+import           State                      (AppM,
+                                             DbEnv (dbName, dbPass, dbUrl, dbUsername),
+                                             State (State), parseDbEnv,
+                                             parseWpEnv)
 
 type API =
   "public" :> Raw
     :<|> HomeRouter
     :<|> ProductsRouter
+    :<|> CategoriesRouter
 
 api :: Proxy API
 api = Proxy
@@ -42,6 +43,7 @@ server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
     :<|> productsRouter
+    :<|> categoriesRouter
 
 main :: IO ()
 main = do
@@ -50,11 +52,13 @@ main = do
   dbEnv <- parseDbEnv
   case (wpEnv, dbEnv) of
     (Just wp, Just db) -> do
-      let poolSettings = settings (dbUrl db) 5432 (dbUsername db) (dbPass db) (dbName db)
-      ePool <- acquire poolSettings
-      case ePool of
-        Left err -> putStrLn $ "Failed to connect to database: " ++ show err
-        Right pool -> do
-          putStrLn "Running on http://localhost:8080"
-          run 8080 $ app (State wp pool)
+      let connectionInfo = defaultConnectInfo {
+        connectHost = dbUrl db,
+        connectDatabase = dbName db,
+        connectUser = dbUsername db,
+        connectPassword = dbPass db
+      }
+      withConnect connectionInfo $ \dbconn -> do
+        putStrLn "Running on http://localhost:8080"
+        run 8080 $ app (State wp dbconn)
     _ -> putStrLn "Failed to parse .env file."
