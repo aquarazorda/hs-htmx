@@ -19,7 +19,9 @@ import Servant
     type (:>), HasServer (ServerT),
   )
 import Servant.Server (hoistServer)
-import State (State (State), AppM, parseEnv)
+import State (State (State), AppM, parseWpEnv, parseDbEnv, DbEnv (dbUrl, dbUsername, dbPass, dbName))
+import Configuration.Dotenv (loadFile, defaultConfig)
+import Hasql.Connection (settings, acquire)
 
 type API =
   "public" :> Raw
@@ -43,9 +45,16 @@ server =
 
 main :: IO ()
 main = do
-  env <- parseEnv
-  case env of
-    Nothing -> putStrLn "Failed to parse .env file."
-    Just e -> do
-      putStrLn "Running on http://localhost:8080"
-      run 8080 $ app (State e)
+  loadFile defaultConfig
+  wpEnv <- parseWpEnv
+  dbEnv <- parseDbEnv
+  case (wpEnv, dbEnv) of
+    (Just wp, Just db) -> do
+      let poolSettings = settings (dbUrl db) 3306 (dbUsername db) (dbPass db) (dbName db)
+      ePool <- acquire poolSettings
+      case ePool of
+        Left err -> putStrLn $ "Failed to connect to database: " ++ show err
+        Right pool -> do
+          putStrLn "Running on http://localhost:8080"
+          run 8080 $ app (State wp pool)
+    _ -> putStrLn "Failed to parse .env file."
