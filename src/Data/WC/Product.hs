@@ -25,7 +25,6 @@ data WpPost = WpPost
     categories :: [WpCategory],
     meta_data :: [MetaData]
   }
-  deriving (Show)
 
 instance FromJSON WpPost where
   parseJSON = withObject "WpPost" $ \v ->

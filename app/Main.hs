@@ -50,7 +50,7 @@ main = do
   dbEnv <- parseDbEnv
   case (wpEnv, dbEnv) of
     (Just wp, Just db) -> do
-      let poolSettings = settings (dbUrl db) 3306 (dbUsername db) (dbPass db) (dbName db)
+      let poolSettings = settings (dbUrl db) 5432 (dbUsername db) (dbPass db) (dbName db)
       ePool <- acquire poolSettings
       case ePool of
         Left err -> putStrLn $ "Failed to connect to database: " ++ show err

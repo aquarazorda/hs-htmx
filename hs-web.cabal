@@ -17,7 +17,6 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -32,6 +31,10 @@ library
       Data.WC.Category
       Data.WC.Product
       Http
+      Postgres.Category
+      Postgres.Label
+      Postgres.Product
+      Postgres.Track
       Router
       Routes.Home
       Routes.Products
@@ -54,6 +57,8 @@ library
     , http-types
     , lucid
     , lucid-htmx
+    , opaleye
+    , product-profunctors
     , servant
     , servant-htmx
     , servant-lucid
@@ -84,6 +89,8 @@ executable hs-web-exe
     , http-types
     , lucid
     , lucid-htmx
+    , opaleye
+    , product-profunctors
     , servant
     , servant-htmx
     , servant-lucid
@@ -115,6 +122,8 @@ test-suite hs-web-test
     , http-types
     , lucid
     , lucid-htmx
+    , opaleye
+    , product-profunctors
     , servant
     , servant-htmx
     , servant-lucid
