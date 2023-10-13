@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Routes.Categories (categoriesRouter, CategoriesRouter) where
 

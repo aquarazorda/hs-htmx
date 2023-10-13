@@ -73,6 +73,9 @@ module.exports = {
   },
   plugins: [
     require("tailwindcss-animate"),
+    plugin(function({ addVariant }) {
+      addVariant('current', '&.active');
+    }),
     plugin(function ({ addVariant }) {
       addVariant('htmx-settling', ['&.htmx-settling', '.htmx-settling &'])
       addVariant('htmx-request', ['&.htmx-request', '.htmx-request &'])

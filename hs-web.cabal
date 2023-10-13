@@ -32,6 +32,7 @@ library
       Data.WC.Category
       Data.WC.Product
       Http
+      Lucid.Hyperscript
       Postgres.Category
       Postgres.Label
       Postgres.Product
