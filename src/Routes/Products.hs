@@ -12,14 +12,15 @@ import           Data.Text                 (pack)
 import qualified Data.WC.Category          as Cat
 import           Data.WC.Product           (WpPost (..), categories, name)
 import           Http                      (getWpResponse)
-import           Lucid                     (Html, ToHtml (toHtml), button_,
-                                            class_, div_, span_, td_, tr_)
+import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
+                                            span_, td_, tr_)
 import           Lucid.Htmx                (hxGet_)
 import           Prelude                   hiding (id)
 import           Router                    (GETRoute, RouteResponse, getRoute)
 import           Servant                   (Get, (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)
+import           Shadcn.Button             (cnBtn)
 import           State                     (AppM)
 
 type ProductsRouter =
@@ -52,9 +53,7 @@ postItem (WpPost {id = cId, name = cName, categories = cCategories, price = cPri
       <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (foldl1 (<>) $ fmap categoryItem cCategories)
       <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml (show cQuantity))
       <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 text-right"] (toHtml cPrice)
-      <> td_
-        [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"]
-        (button_ [class_ "inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-2 py-1 bg-transparent text-black hover:bg-gray-200 active:bg-gray-300 rounded"] "Edit")
+      <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (cnBtn "Edit")
   where
     categoryItem :: Cat.WpCategory -> Html ()
     categoryItem (Cat.WpCategory {Cat.name = cat}) = span_ [class_ "px-2 py-1 bg-red-200 text-red-800 rounded-md mr-1"] $ toHtml cat

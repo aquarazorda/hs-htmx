@@ -6,38 +6,32 @@
 
 module Routes.Categories (categoriesRouter, CategoriesRouter) where
 
-import           Components.Content.Header        (contentHeader)
-import           Components.Table.Simple          (TableHeader (TableHeader),
-                                                   simpleTable)
-import           Control.Monad.IO.Class           (MonadIO (liftIO))
-import           Control.Monad.Trans.Reader       (ask)
-import           Data.Text                        (Text)
-import           Lucid                            (Attribute, Html,
-                                                   ToHtml (toHtml), class_,
-                                                   div_, form_, id_, name_, td_,
-                                                   tr_, type_)
-import           Lucid.Htmx                       (hxPost_, hxSwap_, hxTarget_)
-import           Opaleye                          (Insert (Insert), rCount,
-                                                   rReturning, runInsert,
-                                                   runSelect, sqlString)
-import           Opaleye.Internal.PGTypesExternal (pgString)
-import           Postgres.Category                (Category,
-                                                   Category' (Category, categoryName, categorySlug),
-                                                   CategoryForm (CategoryForm),
-                                                   categoryExistsSelect,
-                                                   categorySelect,
-                                                   categoryTable)
-import           Router                           (GETRoute, RouteResponse,
-                                                   getRoute)
-import           Servant                          (FormUrlEncoded, Get, Header,
-                                                   Headers, Post, ReqBody,
-                                                   addHeader, noHeader,
-                                                   type (:<|>) (..), (:>))
-import           Servant.HTML.Lucid               (HTML)
-import           Servant.Htmx                     (HXRequest, HXRetarget)
-import           Shadcn.Button                    (cnBtn)
-import           Shadcn.Input                     (cnInput)
-import           State                            (AppM, State (db))
+import           Components.Content.Header  (contentHeader)
+import           Components.Table.Simple    (TableHeader (TableHeader),
+                                             simpleTable)
+import           Control.Monad.IO.Class     (MonadIO (liftIO))
+import           Control.Monad.Trans.Reader (ask)
+import           Data.Text                  (Text)
+import           Lucid                      (Attribute, Html, ToHtml (toHtml),
+                                             class_, div_, form_, id_, name_,
+                                             td_, tr_, type_)
+import           Lucid.Htmx                 (hxPost_, hxSwap_, hxTarget_)
+import           Opaleye                    (Insert (Insert), rReturning,
+                                             runInsert, runSelect, sqlString)
+import           Postgres.Category          (Category,
+                                             Category' (Category, categoryName, categorySlug),
+                                             CategoryForm (CategoryForm),
+                                             categoryExistsSelect,
+                                             categorySelect, categoryTable)
+import           Router                     (GETRoute, RouteResponse, getRoute)
+import           Servant                    (FormUrlEncoded, Get, Header,
+                                             Headers, Post, ReqBody, addHeader,
+                                             noHeader, type (:<|>) (..), (:>))
+import           Servant.HTML.Lucid         (HTML)
+import           Servant.Htmx               (HXRequest, HXRetarget)
+import           Shadcn.Button              (cnBtn)
+import           Shadcn.Input               (cnInput)
+import           State                      (AppM, State (db))
 
 type HXReswap = Header "HX-Reswap" Text
 

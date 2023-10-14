@@ -7,6 +7,9 @@ module.exports = {
     "./src/**/*.hs"
   ],
   theme: {
+    fontFamily: {
+      sans: ["Inter", "sans-serif"],
+    },
     container: {
       center: true,
       padding: "2rem",
