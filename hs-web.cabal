@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -41,6 +41,8 @@ library
       Routes.Categories
       Routes.Home
       Routes.Products
+      Shadcn.Button
+      Shadcn.Input
       State
   other-modules:
       Paths_hs_web
@@ -54,6 +56,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , dotenv
+    , http-api-data
     , http-client
     , http-conduit
     , http-types
@@ -86,6 +89,7 @@ executable hs-web-exe
     , bytestring
     , dotenv
     , hs-web
+    , http-api-data
     , http-client
     , http-conduit
     , http-types
@@ -119,6 +123,7 @@ test-suite hs-web-test
     , bytestring
     , dotenv
     , hs-web
+    , http-api-data
     , http-client
     , http-conduit
     , http-types

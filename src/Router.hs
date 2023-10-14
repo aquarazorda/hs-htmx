@@ -18,16 +18,16 @@ import           State                 (AppM)
 type RouteResponse = Headers '[HXPush, Header "Vary" String, Header "Cache-Control" String] (Html ())
 
 routePage :: Text -> HtmlT Identity () -> Html ()
-routePage path content =
-  doctype_ <>
-  head_ (
+routePage path content = do
+  doctype_
+  head_ $ do
       useHtmx
-        <> script_ [src_ "https://unpkg.com/hyperscript.org@0.9.11"] ("" :: Html ())
-        <> link_ [href_ "/public/styles.css", rel_ "stylesheet"]
-    )
-    <> body_ [class_ "flex", id_ "body"] (navBar path)
-    <> spinner "router-loader" "htmx-request:flex hidden"
-    <> main_ [class_ "flex-grow p-6 htmx-request:hidden", id_ "router-outlet"] content
+      script_ [src_ "https://unpkg.com/hyperscript.org@0.9.11"] ("" :: Html ())
+      link_ [href_ "/public/styles.css", rel_ "stylesheet"]
+  body_ [class_ "flex", id_ "body"] $ do
+    navBar path
+    spinner "router-loader" "htmx-request:flex hidden"
+    main_ [class_ "flex-grow p-6 htmx-request:hidden", id_ "router-outlet"] content
 
 type GETRoute = Maybe Text -> AppM RouteResponse
 

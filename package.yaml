@@ -38,6 +38,7 @@ dependencies:
 - postgresql-simple
 - opaleye
 - product-profunctors
+- http-api-data
 
 ghc-options:
 - -Wall

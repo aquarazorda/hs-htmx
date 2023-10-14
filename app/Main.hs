@@ -4,24 +4,31 @@
 
 module Main (main) where
 
-import           Configuration.Dotenv       (defaultConfig, loadFile)
-import           Control.Monad.Trans.Reader (ReaderT (runReaderT))
-import           Database.PostgreSQL.Simple (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
-                                             defaultConnectInfo, withConnect)
-import           Network.Wai.Handler.Warp   (run)
-import           Routes.Categories          (CategoriesRouter, categoriesRouter)
-import           Routes.Home                (HomeRouter, homeRouter)
-import           Routes.Products            (ProductsRouter, productsRouter)
-import           Servant                    (Application, Handler,
-                                             HasServer (ServerT), Proxy (..),
-                                             Raw, serve,
-                                             serveDirectoryFileServer,
-                                             type (:<|>) (..), type (:>))
-import           Servant.Server             (hoistServer)
-import           State                      (AppM,
-                                             DbEnv (dbName, dbPass, dbUrl, dbUsername),
-                                             State (State), parseDbEnv,
-                                             parseWpEnv)
+import           Configuration.Dotenv             (defaultConfig, loadFile)
+import           Configuration.Dotenv.Environment (lookupEnv)
+import           Control.Monad.Trans.Reader       (ReaderT (runReaderT))
+import           Data.String                      (IsString (fromString))
+import           Database.PostgreSQL.Simple       (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
+                                                   defaultConnectInfo,
+                                                   withConnect)
+import           Network.Wai.Handler.Warp         (defaultSettings, run,
+                                                   runSettings, setHost,
+                                                   setPort)
+import           Routes.Categories                (CategoriesRouter,
+                                                   categoriesRouter)
+import           Routes.Home                      (HomeRouter, homeRouter)
+import           Routes.Products                  (ProductsRouter,
+                                                   productsRouter)
+import           Servant                          (Application, Handler,
+                                                   HasServer (ServerT),
+                                                   Proxy (..), Raw, serve,
+                                                   serveDirectoryFileServer,
+                                                   type (:<|>) (..), type (:>))
+import           Servant.Server                   (hoistServer)
+import           State                            (AppM,
+                                                   DbEnv (dbName, dbPass, dbUrl, dbUsername),
+                                                   State (State), parseDbEnv,
+                                                   parseWpEnv)
 
 type API =
   "public" :> Raw
@@ -50,15 +57,17 @@ main = do
   loadFile defaultConfig
   wpEnv <- parseWpEnv
   dbEnv <- parseDbEnv
-  case (wpEnv, dbEnv) of
-    (Just wp, Just db) -> do
+  mHostIp <- lookupEnv "HOST_IP"
+  case (wpEnv, dbEnv, mHostIp) of
+    (Just wp, Just db, Just hostIp) -> do
       let connectionInfo = defaultConnectInfo {
         connectHost = dbUrl db,
         connectDatabase = dbName db,
         connectUser = dbUsername db,
         connectPassword = dbPass db
       }
+      let servantSettings = setPort 8080 $ setHost (fromString hostIp) defaultSettings
       withConnect connectionInfo $ \dbconn -> do
-        putStrLn "Running on http://localhost:8080"
-        run 8080 $ app (State wp dbconn)
+        putStrLn $ "Running on http://" <> hostIp <> ":8080"
+        runSettings servantSettings $ app (State wp dbconn)
     _ -> putStrLn "Failed to parse .env file."

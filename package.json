@@ -3,10 +3,12 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "tw": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch"
+    "tw": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
+    "start_db": "sudo service postgresql start"
   },
   "devDependencies": {
-    "bun-types": "^0.6.0"
+    "bun-types": "^0.6.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

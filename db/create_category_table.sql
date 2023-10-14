@@ -1,5 +1,7 @@
 CREATE TABLE category (
-    id serial PRIMARY KEY,
-    name text NOT NULL,
-    slug text NOT NULL
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    CONSTRAINT uc_category_name UNIQUE (name),
+    CONSTRAINT uc_category_slug UNIQUE (slug)
 );
