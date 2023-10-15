@@ -11,9 +11,8 @@ import           Data.String                      (IsString (fromString))
 import           Database.PostgreSQL.Simple       (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
                                                    defaultConnectInfo,
                                                    withConnect)
-import           Network.Wai.Handler.Warp         (defaultSettings, run,
-                                                   runSettings, setHost,
-                                                   setPort)
+import           Network.Wai.Handler.Warp         (defaultSettings, runSettings,
+                                                   setHost, setPort)
 import           Routes.Categories                (CategoriesRouter,
                                                    categoriesRouter)
 import           Routes.Home                      (HomeRouter, homeRouter)
@@ -33,8 +32,8 @@ import           State                            (AppM,
 type API =
   "public" :> Raw
     :<|> HomeRouter
-    -- :<|> ProductsRouter
-    -- :<|> CategoriesRouter
+    :<|> ProductsRouter
+    :<|> CategoriesRouter
 
 api :: Proxy API
 api = Proxy
@@ -49,8 +48,8 @@ server :: ServerT API AppM
 server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
-    -- :<|> productsRouter
-    -- :<|> categoriesRouter
+    :<|> productsRouter
+    :<|> categoriesRouter
 
 main :: IO ()
 main = do

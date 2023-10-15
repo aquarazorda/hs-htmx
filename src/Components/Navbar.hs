@@ -41,14 +41,14 @@ navItem browserPath (text, path, icon) =
 
 navBar :: Text -> Html ()
 navBar path =
-  aside_ [class_ "sticky top-0 h-screen w-56 bg-background py-4 border-r"] $ do
+  aside_ [class_ "sticky top-0 h-screen flex flex-col min-w-fit bg-background py-4 border-r"] $ do
     div_ [class_ "flex flex-col mb-4 gap-4"] $
       foldl1 (<>) $ fmap (\(text, items) -> do
         div_ [class_ "px-3 py-2"] $ do
           h2_ [class_ "mb-2 px-4 text-lg font-semibold tracking-tight"] $ toHtml text
           nav_ [class_ "space-y-1", __ "on click take .active from .navitem for event.target"] (foldl1 (<>) (fmap (navItem path) items) )
         ) menuItems
-    div_ [class_ "px-4"] $
+    div_ [class_ "px-4 mt-auto"] $
       cnButton Default Small [
         class_ "p-4 w-full justify-center",
         id_ "theme-toggler",
