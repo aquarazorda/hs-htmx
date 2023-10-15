@@ -39,6 +39,7 @@ dependencies:
 - opaleye
 - product-profunctors
 - http-api-data
+- cookie
 
 ghc-options:
 - -Wall

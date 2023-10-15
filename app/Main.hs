@@ -33,8 +33,8 @@ import           State                            (AppM,
 type API =
   "public" :> Raw
     :<|> HomeRouter
-    :<|> ProductsRouter
-    :<|> CategoriesRouter
+    -- :<|> ProductsRouter
+    -- :<|> CategoriesRouter
 
 api :: Proxy API
 api = Proxy
@@ -49,8 +49,8 @@ server :: ServerT API AppM
 server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
-    :<|> productsRouter
-    :<|> categoriesRouter
+    -- :<|> productsRouter
+    -- :<|> categoriesRouter
 
 main :: IO ()
 main = do

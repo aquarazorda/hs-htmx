@@ -37,7 +37,7 @@ type HXReswap = Header "HX-Reswap" Text
 
 type AddCategoryHandlerResponse = Headers '[HXRetarget, HXReswap] (Html ())
 
-type CategoriesRouter = "categories" :> HXRequest :> Get '[HTML] RouteResponse
+type CategoriesRouter = "categories" :> Header "Cookie" Text :> HXRequest :> Get '[HTML] RouteResponse
   :<|>  "categories" :> "add" :> ReqBody '[FormUrlEncoded] CategoryForm :> Post '[HTML] AddCategoryHandlerResponse
 
 formId :: Text
@@ -93,4 +93,4 @@ addCategory (CategoryForm cName cSlug) = do
     _ -> return $ addHeader "#error-message" $ addHeader "innerHTML" "Category already exists"
 
 categoriesRouter :: GETRoute :<|> (CategoryForm -> AppM AddCategoryHandlerResponse)
-categoriesRouter = getRoute "/categories" content :<|> addCategory
+categoriesRouter = (getRoute "/categories" content) :<|> addCategory

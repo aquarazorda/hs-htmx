@@ -17,14 +17,15 @@ import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
 import           Lucid.Htmx                (hxGet_)
 import           Prelude                   hiding (id)
 import           Router                    (GETRoute, RouteResponse, getRoute)
-import           Servant                   (Get, (:>))
+import           Servant                   (Get, Header, (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)
 import           Shadcn.Button             (cnBtn)
 import           State                     (AppM)
+import Data.Text (Text)
 
 type ProductsRouter =
-  "products" :> HXRequest :> Get '[HTML] RouteResponse
+  "products" :> Header "Cookie" Text :> HXRequest :> Get '[HTML] RouteResponse
 
 wcGetPosts :: AppM (Maybe [WpPost])
 wcGetPosts = do
