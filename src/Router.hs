@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Router (routePage, PageResponse, PageRoute, getRoute, GETRoute) where
 
@@ -20,7 +21,7 @@ import           Servant.Htmx          (HXPush, HXRequest)
 import           State                 (AppM)
 import           Web.Cookie            (CookiesText, parseCookiesText)
 
-type PageRoute a = a :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+type PageRoute =  Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
 type PageResponse = Headers '[HXPush, Header "Vary" String, Header "Cache-Control" String] (Html ())
 
 routePage :: CookiesText -> Text -> HtmlT Identity () -> Html ()

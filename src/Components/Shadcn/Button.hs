@@ -25,4 +25,4 @@ cnButton mv ms = termWith "button" [class_ $
       Large       -> "h-10 w-10"
 
 cnBtn :: Term arg result => arg -> result
-cnBtn = cnButton Default DefaultSize
+cnBtn = cnButton Default Small

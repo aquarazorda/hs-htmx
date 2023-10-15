@@ -2,13 +2,11 @@
 
 module Components.Content.Header (contentHeader) where
 
-import           Data.Text (Text)
-import           Lucid     (Html, ToHtml (toHtml), class_, div_, h1_)
+import           Data.Maybe (fromMaybe)
+import           Lucid      (Html, class_, div_, h2_, p_)
 
-contentHeader :: Text -> Maybe (Html ()) -> Html ()
-contentHeader title rightElement =
-  div_ [class_ "flex justify-between items-center mb-4"] $
-    h1_ [class_ "text-lg font-medium"] $
-      case rightElement of
-        Nothing -> toHtml title
-        Just r  -> toHtml title <> r
+contentHeader :: Html () -> Maybe (Html ()) -> Html ()
+contentHeader title rightElement = div_ [class_ "flex-1 flex-col p-2 md:flex"] $ do
+  h2_ [class_ "text-2xl font-bold tracking-tight"] title
+  p_ [class_ "text-muted-foreground"] $ fromMaybe "" rightElement
+

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Components.Navbar (navBar, isRouteActive) where
+module Components.Navbar (navBar, isRouteActive, navChangeAttrs) where
 
 import           Components.Icons         (categoryIcon, foldersIcon,
                                            productIcon, vortexIcon)
@@ -27,6 +27,14 @@ menuItems = [
 isRouteActive :: Text -> Text -> Bool
 isRouteActive "/" "/"          = True
 isRouteActive path browserPath = path `isInfixOf` browserPath && (path /= "/")
+
+navChangeAttrs :: Text -> [Attribute]
+navChangeAttrs path = [
+  hxGet_ path,
+  hxSwap_ "innerHTML scroll:top",
+  hxTarget_ "#router-outlet",
+  hxIndicator_ "#body"
+  ]
 
 navItem :: Text -> SubItem -> Html ()
 navItem browserPath (text, path, icon) =

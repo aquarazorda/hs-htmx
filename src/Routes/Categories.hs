@@ -37,7 +37,7 @@ type HXReswap = Header "HX-Reswap" Text
 
 type AddCategoryHandlerResponse = Headers '[HXRetarget, HXReswap] (Html ())
 
-type CategoriesRouter = PageRoute "categories"
+type CategoriesRouter = "categories" :> PageRoute
   :<|> "categories" :> "add" :> ReqBody '[FormUrlEncoded] CategoryForm :> Post '[HTML] AddCategoryHandlerResponse
 
 categoriesRouter :: GETRoute :<|> (CategoryForm -> AppM AddCategoryHandlerResponse)

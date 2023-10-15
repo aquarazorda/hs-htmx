@@ -28,20 +28,23 @@ library
       Components.Icons
       Components.Navbar
       Components.Product.Item
-      Components.Spinner
-      Components.Table.Simple
       Components.Shadcn.Button
       Components.Shadcn.Input
-      Data.WC.Category
-      Data.WC.Product
-      Http
-      Lucid.Hyperscript
+      Components.Shadcn.Table
+      Components.Spinner
+      Components.Table.Simple
+      Data.Discogs.Folders
       Data.Postgres.Category
       Data.Postgres.Label
       Data.Postgres.Product
       Data.Postgres.Track
+      Data.WC.Category
+      Data.WC.Product
+      Http
+      Lucid.Hyperscript
       Router
       Routes.Categories
+      Routes.Folders
       Routes.Home
       Routes.Products
       State
