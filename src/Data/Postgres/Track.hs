@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Postgres.Track where
+module Data.Postgres.Track where
 
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Opaleye                    (Field, FieldNullable, SqlInt4,

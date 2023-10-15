@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Postgres.Label where
+module Data.Postgres.Label where
 
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Opaleye                    (Field, FieldNullable, SqlInt4,

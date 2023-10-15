@@ -14,17 +14,17 @@ import           Components.Table.Simple    (TableHeader (TableHeader),
                                              simpleTable)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Trans.Reader (ask)
+import           Data.Postgres.Category     (Category,
+                                             Category' (Category, categoryName, categorySlug),
+                                             CategoryForm (CategoryForm),
+                                             categoryExistsSelect,
+                                             categorySelect, categoryTable)
 import           Data.Text                  (Text)
 import           Lucid                      (Html, ToHtml (toHtml), class_,
                                              div_, form_, id_, name_, type_)
 import           Lucid.Htmx                 (hxPost_, hxSwap_, hxTarget_)
 import           Opaleye                    (Insert (Insert), rReturning,
                                              runInsert, runSelect, sqlString)
-import           Postgres.Category          (Category,
-                                             Category' (Category, categoryName, categorySlug),
-                                             CategoryForm (CategoryForm),
-                                             categoryExistsSelect,
-                                             categorySelect, categoryTable)
 import           Router                     (GETRoute, PageRoute, getRoute)
 import           Servant                    (FormUrlEncoded, Header, Headers,
                                              Post, ReqBody, addHeader, noHeader,

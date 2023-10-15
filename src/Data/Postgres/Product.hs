@@ -3,13 +3,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Postgres.Product where
+module Data.Postgres.Product where
 
+import           Data.Postgres.Category     (Category)
+import           Data.Postgres.Label        (Label)
+import           Data.Postgres.Track        (Track)
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Opaleye                    (Field, SqlFloat8, SqlInt4, SqlText)
-import           Postgres.Category          (Category)
-import           Postgres.Label             (Label)
-import           Postgres.Track             (Track)
 
 data Product' a b c d e f g h i j = Product
   { id          :: a,

@@ -36,10 +36,10 @@ library
       Data.WC.Product
       Http
       Lucid.Hyperscript
-      Postgres.Category
-      Postgres.Label
-      Postgres.Product
-      Postgres.Track
+      Data.Postgres.Category
+      Data.Postgres.Label
+      Data.Postgres.Product
+      Data.Postgres.Track
       Router
       Routes.Categories
       Routes.Home

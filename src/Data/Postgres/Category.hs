@@ -4,7 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Postgres.Category where
+module Data.Postgres.Category where
 
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           GHC.Generics               (Generic)
