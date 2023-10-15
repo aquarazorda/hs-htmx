@@ -4,6 +4,7 @@
 module Routes.Folders where
 
 import           Components.Content.Header (contentHeader)
+import           Components.Shadcn.Table   (tableCell_, tableRow_)
 import           Components.Table.Simple   (TableHeader (TableHeader),
                                             simpleTable)
 import           Data.Discogs.Folders      (DcFolder (count),
@@ -11,8 +12,7 @@ import           Data.Discogs.Folders      (DcFolder (count),
                                             foldersPath, name)
 import           Data.Foldable             (Foldable (foldl'))
 import           Http                      (getDcResponse)
-import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
-                                            td_, tr_)
+import           Lucid                     (Html, ToHtml (toHtml), class_, div_)
 import           Router                    (GETRoute, PageRoute, getRoute)
 import           State                     (AppM)
 
@@ -30,11 +30,11 @@ content = do
       simpleTable tableHeaders $
         case mFolders of
           Just (DcFolderRes { folders = f }) -> foldl' (<>) "" (drawItem f)
-          _                                  -> tr_ ""
+          _                                  -> tableRow_ ""
           where
-            drawItem = fmap (\f' -> tr_ $ do
-              td_ [class_ "p-2 align-middle"] (toHtml $ name f')
-              td_ [class_ "p-2 align-middle"] (toHtml $ show $ count f')
+            drawItem = fmap (\f' -> tableRow_ [class_ " cursor-pointer"] $ do
+              tableCell_ (toHtml $ name f')
+              tableCell_ (toHtml $ show $ count f')
               )
 
 foldersRouter :: GETRoute

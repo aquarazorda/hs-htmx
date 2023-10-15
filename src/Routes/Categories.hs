@@ -9,14 +9,14 @@ module Routes.Categories (categoriesRouter, CategoriesRouter) where
 import           Components.Content.Header  (contentHeader)
 import           Components.Shadcn.Button   (cnBtn)
 import           Components.Shadcn.Input    (cnInput)
+import           Components.Shadcn.Table    (tableCell_, tableRow_)
 import           Components.Table.Simple    (TableHeader (TableHeader),
                                              simpleTable)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Trans.Reader (ask)
 import           Data.Text                  (Text)
-import           Lucid                      (Attribute, Html, ToHtml (toHtml),
-                                             class_, div_, form_, id_, name_,
-                                             td_, tr_, type_)
+import           Lucid                      (Html, ToHtml (toHtml), class_,
+                                             div_, form_, id_, name_, type_)
 import           Lucid.Htmx                 (hxPost_, hxSwap_, hxTarget_)
 import           Opaleye                    (Insert (Insert), rReturning,
                                              runInsert, runSelect, sqlString)
@@ -46,20 +46,17 @@ categoriesRouter = getRoute "/categories" content :<|> addCategory
 formId :: Text
 formId = "add_category_form"
 
-trCls :: Attribute
-trCls = class_ "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-
 categoryItem :: Category -> Html ()
-categoryItem (Category{categoryName = cName, categorySlug = cSlug}) = tr_ [trCls] $ do
-  td_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cName)
-  td_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cSlug)
-  td_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] ""
+categoryItem (Category{categoryName = cName, categorySlug = cSlug}) = tableRow_ $ do
+  tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cName)
+  tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cSlug)
+  tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] ""
 
 addItemForm :: Html ()
-addItemForm = tr_ [id_ "add-item", trCls] $ do
-  td_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "name", form_ formId]
-  td_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "slug", form_ formId]
-  td_ [class_ "p-2 align-middle"] $ cnBtn [type_ "submit", form_ formId] "Save"
+addItemForm = tableRow_ [id_ "add-item"] $ do
+  tableCell_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "name", form_ formId]
+  tableCell_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "slug", form_ formId]
+  tableCell_ [class_ "p-2 align-middle"] $ cnBtn [type_ "submit", form_ formId] "Save"
 
 content :: AppM (Html ())
 content = do
@@ -71,7 +68,7 @@ content = do
         form_ [id_ formId, hxPost_ "/categories/add", hxTarget_ "#add-item", hxSwap_ "outerHTML"] ""
         simpleTable tableHeaders $ do
           case categories of
-                [] -> tr_ [trCls] $ td_ [class_ "p-2 align-middle"] "Categories are empty"
+                [] -> tableRow_ $ tableCell_ [class_ "p-2 align-middle"] "Categories are empty"
                 _  -> foldl1 (<>) (fmap categoryItem categories)
           addItemForm
         div_ [id_ "error-message", class_ "p-2 text-red-500"] ""
