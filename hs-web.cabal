@@ -29,6 +29,7 @@ library
       Components.Navbar
       Components.Product.Item
       Components.Shadcn.Button
+      Components.Shadcn.Dialog
       Components.Shadcn.Input
       Components.Shadcn.Table
       Components.Spinner

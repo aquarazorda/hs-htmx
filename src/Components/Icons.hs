@@ -28,11 +28,26 @@ strokeWidth_ = makeAttribute "strokeWidth"
 strokeLinecap_ :: Text -> Attribute
 strokeLinecap_ = makeAttribute "strokeLinecap"
 
+x1 :: Text -> Attribute
+x1 = makeAttribute "x1"
+
+x2 :: Text -> Attribute
+x2 = makeAttribute "x2"
+
+y1 :: Text -> Attribute
+y1 = makeAttribute "y1"
+
+y2 :: Text -> Attribute
+y2 = makeAttribute "y2"
+
 path_ :: [Attribute] -> Html ()
 path_ attrs = term "path" attrs ""
 
 g_ :: Term arg result => arg -> result
 g_ = term "g"
+
+line_ :: Term arg result => arg -> result
+line_ = term "line"
 
 currentColor :: Attribute
 currentColor = fill_ "currentColor"
@@ -60,3 +75,8 @@ foldersIcon = svg [viewBox_ "0 0 24 24"] $
   g_ [fill_ "none", stroke_ "currentColor", strokeLinecap_ "round", strokeLinejoin_ "round", strokeWidth_ "2"] $ do
     path_ [d_ "M8 17h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.93a2 2 0 0 1-1.66-.9l-.82-1.2a2 2 0 0 0-1.66-.9H8a2 2 0 0 0-2 2v9c0 1.1.9 2 2 2Z"]
     path_ [d_ "M2 8v11c0 1.1.9 2 2 2h14"]
+
+dialogX :: Icon
+dialogX = svg [viewBox_ "0 0 24 24", fill_ "none", stroke_ "currentColor", strokeWidth_ "2", strokeLinecap_ "round"] $ do
+  line_ [x1 "18", x2 "6", y1 "6", y2 "18"] ""
+  line_ [x1 "6", x2 "18", y1 "6", y2 "18"] ""
