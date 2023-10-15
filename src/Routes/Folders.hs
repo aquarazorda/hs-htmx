@@ -8,6 +8,7 @@ import           Components.Shadcn.Table   (tableCell_, tableRow_)
 import           Components.Table.Simple   (TableHeader (TableHeader),
                                             simpleTable)
 import           Data.Discogs.Folders      (DcFolder (count, id),
+                                            DcFolderReleaseRes,
                                             DcFolderRes (DcFolderRes, folders),
                                             foldersPath, name)
 import           Data.Foldable             (Foldable (foldl'))
@@ -55,10 +56,14 @@ foldersContent = do
 
 folderContent :: Int -> GETRoute
 folderContent folderId = do
-  getRoute ("/folders/" <> pack (show folderId)) $ pure $ do
-    contentHeader "Folder" Nothing
-    div_ [class_ "w-full overflow-auto"] $ do
-        div_ (toHtml $ show folderId)
+  getRoute ("/folders/" <> pack fId) $ do
+    (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse (foldersPath <> "/" <> pack fId <> "/releases")
+    pure $ do
+      contentHeader "Folder" (Just $ div_ (toHtml fId))
+      div_ [class_ "w-full overflow-auto"] $ do
+          div_ (toHtml fId)
+    where
+      fId = show folderId
       -- simpleTable tableHeaders $ do
       --   tableRow_ [class_ " cursor-pointer"] $ do
       --     tableCell_ (toHtml "name")
