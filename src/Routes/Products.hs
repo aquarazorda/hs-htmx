@@ -5,10 +5,10 @@
 module Routes.Products (productsRouter, ProductsRouter) where
 
 import           Components.Content.Header (contentHeader)
+import           Components.Shadcn.Button  (cnBtn)
 import           Components.Table.Simple   (TableHeader (TableHeader),
                                             simpleTable)
-import           Data.Aeson                (decode)
-import           Data.Text                 (pack)
+import           Data.Text                 (Text, pack)
 import qualified Data.WC.Category          as Cat
 import           Data.WC.Product           (WpPost (..), categories, name)
 import           Http                      (getWpResponse)
@@ -16,25 +16,18 @@ import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
                                             span_, td_, tr_)
 import           Lucid.Htmx                (hxGet_)
 import           Prelude                   hiding (id)
-import           Router                    (GETRoute, RouteResponse, getRoute)
+import           Router                    (GETRoute, PageResponse, getRoute)
 import           Servant                   (Get, Header, (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)
-import           Shadcn.Button             (cnBtn)
 import           State                     (AppM)
-import Data.Text (Text)
 
 type ProductsRouter =
-  "products" :> Header "Cookie" Text :> HXRequest :> Get '[HTML] RouteResponse
-
-wcGetPosts :: AppM (Maybe [WpPost])
-wcGetPosts = do
-  res <- getWpResponse "/products"
-  pure $ decode res
+  "products" :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
 
 content :: AppM (Html ())
 content = do
-  maybe contentEmpty withPosts <$> wcGetPosts
+  maybe contentEmpty withPosts <$> getWpResponse "/products"
   where
     wrapper :: Html () -> Html ()
     wrapper h = contentHeader "Products" Nothing <> div_ [class_ "w-full overflow-auto"] h

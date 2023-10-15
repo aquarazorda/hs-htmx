@@ -23,8 +23,9 @@ data DbEnv = DbEnv {
 } deriving (Show)
 
 data State = State
-  { wp :: WpEnv
-  , db :: Connection
+  { wp      :: WpEnv
+  , db      :: Connection
+  , dcToken :: Text
   }
 
 packStr :: String -> ByteString

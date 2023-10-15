@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Shadcn.Input where
+module Components.Shadcn.Input where
 
 import           Lucid      (class_, input_)
 import           Lucid.Base (Attribute, Html)

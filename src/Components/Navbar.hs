@@ -2,15 +2,17 @@
 
 module Components.Navbar (navBar, isRouteActive) where
 
-import           Components.Icons  (categoryIcon, foldersIcon, productIcon,
-                                    vortexIcon)
-import           Data.Text         (Text, isInfixOf)
-import           Lucid             (Attribute, Html, ToHtml (toHtml), aside_,
-                                    class_, div_, h2_, id_, nav_)
-import           Lucid.Htmx        (hxGet_, hxIndicator_, hxSwap_, hxTarget_)
-import           Lucid.Hyperscript (__)
-import           Shadcn.Button     (ButtonSize (Small),
-                                    ButtonVariant (Default, Ghost), cnButton)
+import           Components.Icons         (categoryIcon, foldersIcon,
+                                           productIcon, vortexIcon)
+import           Components.Shadcn.Button (ButtonSize (Small),
+                                           ButtonVariant (Default, Ghost),
+                                           cnButton)
+import           Data.Text                (Text, isInfixOf)
+import           Lucid                    (Attribute, Html, ToHtml (toHtml),
+                                           aside_, class_, div_, h2_, id_, nav_)
+import           Lucid.Htmx               (hxGet_, hxIndicator_, hxSwap_,
+                                           hxTarget_)
+import           Lucid.Hyperscript        (__)
 
 type SubItem = (Text, Text, [Attribute] -> Html ())
 type MenuItem = (Text, [SubItem])

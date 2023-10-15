@@ -30,6 +30,8 @@ library
       Components.Product.Item
       Components.Spinner
       Components.Table.Simple
+      Components.Shadcn.Button
+      Components.Shadcn.Input
       Data.WC.Category
       Data.WC.Product
       Http
@@ -42,8 +44,6 @@ library
       Routes.Categories
       Routes.Home
       Routes.Products
-      Shadcn.Button
-      Shadcn.Input
       State
   other-modules:
       Paths_hs_web

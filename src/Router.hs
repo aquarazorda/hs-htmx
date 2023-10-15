@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Router (routePage, RouteResponse, getRoute, GETRoute) where
+module Router (routePage, PageResponse, PageRoute, getRoute, GETRoute) where
 
 import           Components.Navbar     (navBar)
 import           Components.Spinner    (spinner)
@@ -13,12 +13,15 @@ import           Lucid                 (Html, HtmlT, body_, class_,
                                         crossorigin_, doctype_, head_, href_,
                                         id_, link_, main_, rel_, script_, src_)
 import           Lucid.Htmx            (useHtmx)
-import           Servant               (Header, Headers, addHeader, noHeader)
-import           Servant.Htmx          (HXPush)
+import           Servant               (Get, Header, Headers, addHeader,
+                                        noHeader, (:>))
+import           Servant.HTML.Lucid    (HTML)
+import           Servant.Htmx          (HXPush, HXRequest)
 import           State                 (AppM)
 import           Web.Cookie            (CookiesText, parseCookiesText)
 
-type RouteResponse = Headers '[HXPush, Header "Vary" String, Header "Cache-Control" String] (Html ())
+type PageRoute a = a :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+type PageResponse = Headers '[HXPush, Header "Vary" String, Header "Cache-Control" String] (Html ())
 
 routePage :: CookiesText -> Text -> HtmlT Identity () -> Html ()
 routePage cookies path content = do
@@ -38,7 +41,7 @@ routePage cookies path content = do
   where
     isDarkMode = foldl' (\acc (name, value) -> acc || (name == "darkMode" && value == "true")) False cookies
 
-type GETRoute = Maybe Text -> Maybe Text -> AppM RouteResponse
+type GETRoute = Maybe Text -> Maybe Text -> AppM PageResponse
 
 getRoute :: Text -> AppM (Html ()) -> GETRoute
 getRoute path content mCookies hx = case hx of

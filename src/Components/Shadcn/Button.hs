@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Shadcn.Button where
+module Components.Shadcn.Button where
 
 import           Lucid (Term (termWith), class_)
 

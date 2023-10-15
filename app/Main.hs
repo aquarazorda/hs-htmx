@@ -18,6 +18,7 @@ import           Routes.Categories                (CategoriesRouter,
 import           Routes.Home                      (HomeRouter, homeRouter)
 import           Routes.Products                  (ProductsRouter,
                                                    productsRouter)
+import           Routes.Folders                   (FoldersRouter, foldersRouter)
 import           Servant                          (Application, Handler,
                                                    HasServer (ServerT),
                                                    Proxy (..), Raw, serve,
@@ -26,14 +27,15 @@ import           Servant                          (Application, Handler,
 import           Servant.Server                   (hoistServer)
 import           State                            (AppM,
                                                    DbEnv (dbName, dbPass, dbUrl, dbUsername),
-                                                   State (State), parseDbEnv,
-                                                   parseWpEnv)
+                                                   State (State), parseDbEnv, parseWpEnv)
+import Data.Text (pack)
 
 type API =
   "public" :> Raw
     :<|> HomeRouter
     :<|> ProductsRouter
     :<|> CategoriesRouter
+    :<|> FoldersRouter
 
 api :: Proxy API
 api = Proxy
@@ -50,6 +52,7 @@ server =
     :<|> homeRouter
     :<|> productsRouter
     :<|> categoriesRouter
+    :<|> foldersRouter
 
 main :: IO ()
 main = do
@@ -57,8 +60,9 @@ main = do
   wpEnv <- parseWpEnv
   dbEnv <- parseDbEnv
   mHostIp <- lookupEnv "HOST_IP"
-  case (wpEnv, dbEnv, mHostIp) of
-    (Just wp, Just db, Just hostIp) -> do
+  mDcToken <- lookupEnv "DC_TOKEN"
+  case (wpEnv, dbEnv, mHostIp, mDcToken) of
+    (Just wp, Just db, Just hostIp, Just dcToken) -> do
       let connectionInfo = defaultConnectInfo {
         connectHost = dbUrl db,
         connectDatabase = dbName db,
@@ -68,5 +72,5 @@ main = do
       let servantSettings = setPort 8080 $ setHost (fromString hostIp) defaultSettings
       withConnect connectionInfo $ \dbconn -> do
         putStrLn $ "Running on http://" <> hostIp <> ":8080"
-        runSettings servantSettings $ app (State wp dbconn)
+        runSettings servantSettings $ app (State wp dbconn (pack dcToken))
     _ -> putStrLn "Failed to parse .env file."
