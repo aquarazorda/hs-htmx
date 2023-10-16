@@ -26,13 +26,11 @@ import           Data.Discogs.Folders        (DcArtist (dcArtistName),
                                               foldersPath)
 import           Data.Foldable               (Foldable (foldl'))
 import           Data.List                   (intercalate)
+import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text, pack)
 import           Http                        (getDcResponse)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
-                                              disabled_, div_, img_, span_,
-                                              src_)
-import           Lucid.Htmx                  (hxGet_, hxIndicator_, hxSwap_,
-                                              hxTarget_)
+                                              div_, img_, span_, src_)
 import           Router                      (GETRoute, PageResponse, PageRoute,
                                               getRoute)
 import           Servant                     (Capture, Get, Header, QueryParam,
@@ -62,13 +60,7 @@ foldersContent = do
           Just (DcFolderRes { folders = f }) -> foldl' (<>) "" (drawItem f)
           _                                  -> tableRow_ ""
           where
-            drawItem = fmap (\f' -> tableRow_ [
-              class_ " cursor-pointer",
-              hxGet_ $ "/folders/" <> pack (show $ dcFolderId f'),
-              hxSwap_ "innerHTML scroll:top",
-              hxTarget_ "#router-outlet",
-              hxIndicator_ "#body"
-              ] $ do
+            drawItem = fmap (\f' -> tableRow_ ([class_ " cursor-pointer"] <> navChangeAttrs ("/folders/" <> pack (show $ dcFolderId f'))) $ do
               tableCell_ (toHtml $ dcFolderName f')
               tableCell_ (toHtml $ show $ dcFolderCount f')
               )
@@ -87,7 +79,7 @@ folderContent folderId page = do
           cnButton (Just Destructive) (Just DefaultSize) (navChangeAttrs "/folders") "Back to folders"
         Just f -> do
           let pagination = dcFolderReleasePagination f
-          let p = maybe 0 id page
+          let p = fromMaybe 0 page
           contentHeader ("Folder " <> toHtml fId) $ Just (cnButton (Just Link) (Just DefaultSize) (navChangeAttrs "/folders") "Back to folders")
           div_ [class_ "w-full overflow-auto space-y-4"] $ do
             simpleTable tableHeaders $ do
@@ -114,7 +106,7 @@ folderContent folderId page = do
       tableHeaders = [TableHeader "" "", TableHeader "Title" "", TableHeader "Genres" "", TableHeader "Year" "", TableHeader "Actions" ""]
       drawItem :: DcRelease -> Html ()
       drawItem item = do
-          tableRow_ [class_ " cursor-pointer"] $ do
+          tableRow_ ([class_ " cursor-pointer"] <> navChangeAttrs releasePath) $ do
             tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20"]
             tableCell_ $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
             tableCell_ $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
