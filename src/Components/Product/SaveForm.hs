@@ -48,7 +48,7 @@ productSaveForm = div_ [class_ "container h-full overflow-hidden rounded-[0.5rem
               cnInput [value_ "https://i.discogs.com/xMJKhqd9Uw8Zb-6GiM21DdTi38PKlvW78DdND3-xqJs/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg2NzE1/MS0xNDg3MTc1MTk3/LTc5MjUuanBlZw.jpeg"]
             div_ [class_ "flex flex-col space-y-2"] $ do
               cnLabel [for_ "release-title"] "Description"
-              cnTextarea [value_ "Here goes some html text", class_ "h-full", rows_ "10"]
+              cnTextarea [class_ "h-full", rows_ "10"] "Here goes some html text"
           div_ [class_ "flex w-full mt-auto justify-end"] $ do
             cnBtn "Save"
 

@@ -11,10 +11,10 @@ foldersPath :: Text
 foldersPath = "/users/MoreviTBS/collection/folders"
 
 data DcFolder = DcFolder {
-  id          :: Int,
-  name        :: String,
-  count       :: Int,
-  resourceUrl :: String
+  dcFolderId          :: Int,
+  dcFolderName        :: String,
+  dcFolderCount       :: Int,
+  dcFolderResourceUrl :: String
 } deriving (Show)
 
 newtype DcFolderRes = DcFolderRes {
@@ -82,6 +82,7 @@ instance FromJSON DcNote where
       <*> v .: "value"
 
 data DcBasicInformation = DcBasicInformation {
+  dcId         :: Int,
   dcThumb      :: String,
   dcCoverImage :: String,
   dcTitle      :: String,
@@ -95,7 +96,8 @@ data DcBasicInformation = DcBasicInformation {
 instance FromJSON DcBasicInformation where
   parseJSON = withObject "DcBasicInformation" $ \v ->
     DcBasicInformation
-      <$> v .: "thumb"
+      <$> v .: "id"
+      <*> v .: "thumb"
       <*> v .: "cover_image"
       <*> v .: "title"
       <*> v .: "year"
@@ -108,7 +110,7 @@ data DcRelease = DcRelease {
   dcReleaseId               :: Int,
   dcReleaseRating           :: Int,
   dcReleaseBasicInformation :: DcBasicInformation,
-  dcFolderId                :: Int,
+  dcReleaseFolderId         :: Int,
   dcNotes                   :: [DcNote]
 } deriving (Show)
 

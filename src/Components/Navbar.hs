@@ -38,14 +38,9 @@ navChangeAttrs path = [
 
 navItem :: Text -> SubItem -> Html ()
 navItem browserPath (text, path, icon) =
-  cnButton Ghost Small
-    [
-      class_ $ "navitem w-full justify-start current:bg-secondary/80" <> if isRouteActive path browserPath then " active" else "",
-      hxGet_ path,
-      hxSwap_ "innerHTML scroll:top",
-      hxTarget_ "#router-outlet",
-      hxIndicator_ "#body"
-    ] $ do
+  cnButton (Just Ghost) (Just Small)
+    ([ class_ $ "navitem w-full justify-start current:bg-secondary/80" <> if isRouteActive path browserPath then " active" else "" ]
+      <> navChangeAttrs path) $ do
       icon [class_ "mr-2 h-4 w-4"]
       toHtml text
 
@@ -59,7 +54,7 @@ navBar path =
           nav_ [class_ "space-y-1", __ "on click take .active from .navitem for event.target"] (foldl1 (<>) (fmap (navItem path) items) )
         ) menuItems
     div_ [class_ "px-4 mt-auto"] $
-      cnButton Default Small [
+      cnButton (Just Default) (Just Small) [
         class_ "p-4 w-full justify-center",
         id_ "theme-toggler",
         __ "init if cookies['darkMode'] is 'true' then put 'Light ☀️' into my innerHTML else put 'Dark 🌙' into my innerHTML end on click if my innerHTML is 'Light ☀️' then put 'Dark 🌙' into my innerHTML then remove .dark from body then set cookies['darkMode'] to {value: 'false'} else put 'Light ☀️' into my innerHTML then add .dark to body then set cookies['darkMode'] to {value: 'true'}"

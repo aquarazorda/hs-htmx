@@ -80,3 +80,21 @@ dialogX :: Icon
 dialogX = svg [viewBox_ "0 0 24 24", fill_ "none", stroke_ "currentColor", strokeWidth_ "2", strokeLinecap_ "round"] $ do
   line_ [x1 "18", x2 "6", y1 "6", y2 "18"] ""
   line_ [x1 "6", x2 "18", y1 "6", y2 "18"] ""
+
+doubleArrowLeft :: Icon
+doubleArrowLeft = svg [viewBox_ "0 0 24 24"] $ do
+  path_ [currentColor, d_ "M17.59 18L19 16.59L14.42 12L19 7.41L17.59 6l-6 6z"]
+  path_ [currentColor, d_ "m11 18l1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"]
+
+doubleArrowRight :: Icon
+doubleArrowRight = svg [viewBox_ "0 0 24 24"] $ do
+  path_ [currentColor, d_ "M6.41 6L5 7.41L9.58 12L5 16.59L6.41 18l6-6z"]
+  path_ [currentColor, d_ "m13 6l-1.41 1.41L16.17 12l-4.58 4.59L13 18l6-6z"]
+
+arrowLeft :: Icon
+arrowLeft = svg [viewBox_ "0 0 24 24"] $ do
+  path_ [currentColor, d_ "M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6l6 6l1.41-1.41z"]
+
+arrowRight :: Icon
+arrowRight = svg [viewBox_ "0 0 24 24"] $ do
+  path_ [currentColor, d_ "M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6l-1.41-1.41z"]
