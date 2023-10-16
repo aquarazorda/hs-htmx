@@ -1,3 +1,7 @@
 # hs-htmx
 
-Haskell + HTMX + TailwindCSS
+Haskell with Servant, Lucid & Opaleye
+
+HTMX & HyperScript
+
+TailwindCSS & Shadcn/ui
