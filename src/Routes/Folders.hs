@@ -43,6 +43,13 @@ type FoldersRouter =  "folders" :> PageRoute
   :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
   :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
 
+foldersRouter :: GETRoute
+  :<|> FolderContent
+  :<|> ReleaseContent
+foldersRouter = getRoute "/folders" foldersContent
+  :<|> folderContent
+  :<|> releaseContent
+
 getFullTitle :: String -> [DcArtist] -> String
 getFullTitle title artists = intercalate " & " (map dcArtistName artists) <> " - " <> title
 
@@ -70,8 +77,10 @@ type FolderContent = Int -> Maybe Int -> GETRoute
 
 folderContent :: FolderContent
 folderContent folderId page = do
-  getRoute ("/folders/" <> pack fId) $ do
-    (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse (foldersPath <> "/" <> pack fId <> "/releases")
+  let p = fromMaybe 1 page
+  let fullpath = "/folders/" <> pack fId <> "?page=" <> pack (show p)
+  getRoute fullpath $ do
+    (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse (foldersPath <> "/" <> pack fId <> "/releases" <> "?page=" <> pack (show p))
     pure $ do
       case res of
         Nothing -> div_ [class_ "w-full overflow-auto space-y-2"] $ do
@@ -79,7 +88,6 @@ folderContent folderId page = do
           cnButton (Just Destructive) (Just DefaultSize) (navChangeAttrs "/folders") "Back to folders"
         Just f -> do
           let pagination = dcFolderReleasePagination f
-          let p = fromMaybe 0 page
           contentHeader ("Folder " <> toHtml fId) $ Just (cnButton (Just Link) (Just DefaultSize) (navChangeAttrs "/folders") "Back to folders")
           div_ [class_ "w-full overflow-auto space-y-4"] $ do
             simpleTable tableHeaders $ do
@@ -89,16 +97,24 @@ folderContent folderId page = do
                 div_ [class_ "flex w-[100px] items-center justify-center text-sm font-medium"] $ do
                   "Page " <> toHtml (show $ dcPaginationPage pagination) <> " of " <> toHtml (show $ dcPaginationPages pagination)
                 div_ [class_ "flex items-center space-x-2"] $ do
-                  cnButton (Just Outline) Nothing (disableWhen (p < 2) [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"]) $ do
+                  cnButton (Just Outline) Nothing (disableWhen (p < 2)
+                    [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=1")
+                    ) $ do
                     span_ [class_ "sr-only"] "Go to first page"
                     doubleArrowLeft [class_ "h-4 w-4"]
-                  cnButton (Just Outline) Nothing (disableWhen (p < 2) [class_ "h-8 w-8 p-0 justify-center"]) $ do
+                  cnButton (Just Outline) Nothing (disableWhen (p < 2)
+                    [class_ "h-8 w-8 p-0 justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p - 1))
+                    ) $ do
                     span_ [class_ "sr-only"] "Go to previous page"
                     arrowLeft [class_ "h-4 w-4"]
-                  cnButton (Just Outline) Nothing (disableWhen (p >= dcPaginationPages pagination) [class_ "h-8 w-8 p-0 justify-center"]) $ do
+                  cnButton (Just Outline) Nothing (disableWhen (p >= dcPaginationPages pagination)
+                    [class_ "h-8 w-8 p-0 justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p + 1))
+                    ) $ do
                     span_ [class_ "sr-only"] "Go to next page"
                     arrowRight [class_ "h-4 w-4"]
-                  cnButton (Just Outline) Nothing (disableWhen (p >= dcPaginationPages pagination) [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"]) $ do
+                  cnButton (Just Outline) Nothing (disableWhen (p >= dcPaginationPages pagination)
+                    [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ dcPaginationPages pagination))
+                    ) $ do
                     span_ [class_ "sr-only"] "Go to last page"
                     doubleArrowRight [class_ "h-4 w-4"]
     where
@@ -122,10 +138,3 @@ type ReleaseContent = Int -> Int -> GETRoute
 releaseContent :: ReleaseContent
 releaseContent folderId releaseId = getRoute ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId))
   $ pure productSaveForm
-
-foldersRouter :: GETRoute
-  :<|> FolderContent
-  :<|> ReleaseContent
-foldersRouter = getRoute "/folders" foldersContent
-  :<|> folderContent
-  :<|> releaseContent
