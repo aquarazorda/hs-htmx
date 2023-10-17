@@ -10,27 +10,28 @@ import           Components.Icons            (arrowLeft, arrowRight,
                                               doubleArrowLeft, doubleArrowRight)
 import           Components.Navbar           (navChangeAttrs)
 import           Components.Product.SaveForm (productSaveForm)
-import           Components.Shadcn.Button    (ButtonSize (DefaultSize),
-                                              ButtonVariant (Destructive, Link, Outline),
+import           Components.Shadcn.Button    (ButtonSize (ButtonDefaultSize),
+                                              ButtonVariant (ButtonDestructive, ButtonLink, ButtonOutline),
                                               cnBtn, cnButton, disableWhen)
 import           Components.Shadcn.Table     (tableCell_, tableRow_)
 import           Components.Table.Simple     (TableHeader (TableHeader),
                                               simpleTable)
-import           Data.Discogs.Folders        (DcArtist (dcArtistName),
-                                              DcBasicInformation (dcArtists, dcGenres, dcId, dcStyles, dcThumb, dcTitle, dcYear),
+import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcGenres, dcId, dcStyles, dcThumb, dcTitle, dcYear),
                                               DcFolder (dcFolderCount, dcFolderId, dcFolderName),
                                               DcFolderReleaseRes (dcFolderReleasePagination, dcFolderReleases),
                                               DcFolderRes (DcFolderRes, folders),
                                               DcPagination (dcPaginationPage, dcPaginationPages),
                                               DcRelease (dcReleaseBasicInformation),
-                                              foldersPath)
+                                              foldersPath, getFullTitle)
 import           Data.Foldable               (Foldable (foldl'))
 import           Data.List                   (intercalate)
 import           Data.Maybe                  (fromMaybe)
-import           Data.Text                   (Text, pack)
+import           Data.Text                   (Text, concat, pack)
 import           Http                        (getDcResponse)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
-                                              div_, img_, span_, src_)
+                                              div_, id_, img_, span_, src_)
+import           Lucid.Hyperscript           (withAutoFocus)
+import           Prelude                     hiding (concat)
 import           Router                      (GETRoute, PageResponse, PageRoute,
                                               getRoute)
 import           Servant                     (Capture, Get, Header, QueryParam,
@@ -40,7 +41,7 @@ import           Servant.Htmx                (HXRequest)
 import           State                       (AppM)
 
 type FoldersRouter =  "folders" :> PageRoute
-  :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> QueryParam "focusId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
   :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
 
 foldersRouter :: GETRoute
@@ -49,9 +50,6 @@ foldersRouter :: GETRoute
 foldersRouter = getRoute "/folders" foldersContent
   :<|> folderContent
   :<|> releaseContent
-
-getFullTitle :: String -> [DcArtist] -> String
-getFullTitle title artists = intercalate " & " (map dcArtistName artists) <> " - " <> title
 
 getGenres :: [String] -> [String] -> String
 getGenres genres styles = intercalate ", " (genres ++ styles)
@@ -73,22 +71,25 @@ foldersContent = do
               )
             tableHeaders = [TableHeader "Name" "", TableHeader "Count" ""]
 
-type FolderContent = Int -> Maybe Int -> GETRoute
+type FolderContent = Int -> Maybe Int -> Maybe Int -> GETRoute
 
 folderContent :: FolderContent
-folderContent folderId page = do
+folderContent folderId page focusId = do
   let p = fromMaybe 1 page
-  let fullpath = "/folders/" <> pack fId <> "?page=" <> pack (show p)
+  let focusParam = case focusId of
+        Just focusId' -> "&focusId=" <> pack (show focusId')
+        Nothing       -> ""
+  let fullpath = concat ["/folders/", pack fId, "?page=", pack (show p), focusParam]
   getRoute fullpath $ do
     (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse (foldersPath <> "/" <> pack fId <> "/releases" <> "?page=" <> pack (show p))
     pure $ do
       case res of
         Nothing -> div_ [class_ "w-full overflow-auto space-y-2"] $ do
           div_ [class_ "text-destructive-foreground"] "There might be a problem."
-          cnButton (Just Destructive) (Just DefaultSize) (navChangeAttrs "/folders") "Back to folders"
+          cnButton (Just ButtonDestructive) (Just ButtonDefaultSize) (navChangeAttrs "/folders") "Back to folders"
         Just f -> do
           let pagination = dcFolderReleasePagination f
-          contentHeader ("Folder " <> toHtml fId) $ Just (cnButton (Just Link) (Just DefaultSize) (navChangeAttrs "/folders") "Back to folders")
+          contentHeader ("Folder " <> toHtml fId) $ Just (cnButton (Just ButtonLink) (Just ButtonDefaultSize) (navChangeAttrs "/folders") "Back to folders")
           div_ [class_ "w-full overflow-auto space-y-4"] $ do
             simpleTable tableHeaders $ do
               foldl' (<>) "" (fmap drawItem (dcFolderReleases f))
@@ -97,22 +98,22 @@ folderContent folderId page = do
                 div_ [class_ "flex w-[100px] items-center justify-center text-sm font-medium"] $ do
                   "Page " <> toHtml (show $ dcPaginationPage pagination) <> " of " <> toHtml (show $ dcPaginationPages pagination)
                 div_ [class_ "flex items-center space-x-2"] $ do
-                  cnButton (Just Outline) Nothing (disableWhen (p < 2)
+                  cnButton (Just ButtonOutline) Nothing (disableWhen (p < 2)
                     [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=1")
                     ) $ do
                     span_ [class_ "sr-only"] "Go to first page"
                     doubleArrowLeft [class_ "h-4 w-4"]
-                  cnButton (Just Outline) Nothing (disableWhen (p < 2)
+                  cnButton (Just ButtonOutline) Nothing (disableWhen (p < 2)
                     [class_ "h-8 w-8 p-0 justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p - 1))
                     ) $ do
                     span_ [class_ "sr-only"] "Go to previous page"
                     arrowLeft [class_ "h-4 w-4"]
-                  cnButton (Just Outline) Nothing (disableWhen (p >= dcPaginationPages pagination)
+                  cnButton (Just ButtonOutline) Nothing (disableWhen (p >= dcPaginationPages pagination)
                     [class_ "h-8 w-8 p-0 justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p + 1))
                     ) $ do
                     span_ [class_ "sr-only"] "Go to next page"
                     arrowRight [class_ "h-4 w-4"]
-                  cnButton (Just Outline) Nothing (disableWhen (p >= dcPaginationPages pagination)
+                  cnButton (Just ButtonOutline) Nothing (disableWhen (p >= dcPaginationPages pagination)
                     [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ dcPaginationPages pagination))
                     ) $ do
                     span_ [class_ "sr-only"] "Go to last page"
@@ -122,10 +123,10 @@ folderContent folderId page = do
       tableHeaders = [TableHeader "" "", TableHeader "Title" "", TableHeader "Genres" "", TableHeader "Year" "", TableHeader "Actions" ""]
       drawItem :: DcRelease -> Html ()
       drawItem item = do
-          tableRow_ ([class_ " cursor-pointer"] <> navChangeAttrs releasePath) $ do
+          tableRow_ ([class_ "cursor-pointer", id_ $ pack $ show (dcId basicInfo), withAutoFocus (dcId basicInfo == fromMaybe 0 focusId) ] <> navChangeAttrs releasePath) $ do
             tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20"]
-            tableCell_ $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
-            tableCell_ $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
+            tableCell_ [class_ "max-w-md truncate"] $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
+            tableCell_ [class_ "max-w-md truncate"] $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
             tableCell_ $ toHtml (show $ dcYear basicInfo)
             tableCell_ $ div_ [] $ do
               cnBtn (navChangeAttrs releasePath) "Add"
@@ -137,4 +138,4 @@ type ReleaseContent = Int -> Int -> GETRoute
 
 releaseContent :: ReleaseContent
 releaseContent folderId releaseId = getRoute ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId))
-  $ pure productSaveForm
+  $ productSaveForm (pack $ show folderId) (pack $ show releaseId)

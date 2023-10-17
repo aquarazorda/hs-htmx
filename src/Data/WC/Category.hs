@@ -2,11 +2,13 @@
 
 module Data.WC.Category where
 
-import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
+import           Data.Aeson (FromJSON, parseJSON, withObject, (.!=), (.:),
+                             (.:?))
 
 data WpCategory = WpCategory
-  { name :: String,
-    slug :: String
+  { name  :: String,
+    slug  :: String,
+    count :: Int
   } deriving (Show)
 
 instance FromJSON WpCategory where
@@ -14,3 +16,4 @@ instance FromJSON WpCategory where
     WpCategory
       <$> v .: "name"
       <*> v .: "slug"
+      <*> v .:? "count" .!= 0

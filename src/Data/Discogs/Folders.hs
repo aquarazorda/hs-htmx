@@ -4,11 +4,15 @@
 module Data.Discogs.Folders where
 
 import           Data.Aeson   (FromJSON (parseJSON), withObject, (.:))
+import           Data.List    (intercalate)
 import           Data.Text    (Text)
 import           GHC.Generics (Generic)
 
 foldersPath :: Text
 foldersPath = "/users/MoreviTBS/collection/folders"
+
+getFullTitle :: String -> [DcArtist] -> String
+getFullTitle title artists = intercalate " & " (map dcArtistName artists) <> " - " <> title
 
 data DcFolder = DcFolder {
   dcFolderId          :: Int,
@@ -80,6 +84,30 @@ instance FromJSON DcNote where
     DcNote
       <$> v .: "field_id"
       <*> v .: "value"
+
+data DcVideo = DcReleaseVideo {
+  dcVideoUrl   :: String,
+  dcVideoTitle :: String
+} deriving (Show)
+
+instance FromJSON DcVideo where
+  parseJSON = withObject "DcVideo" $ \v ->
+    DcReleaseVideo
+      <$> v .: "uri"
+      <*> v .: "title"
+
+data DcTrack = DcTrack {
+  dcTrackPosition :: String,
+  dcTrackTitle    :: String,
+  dcTrackDuration :: String
+} deriving (Show)
+
+instance FromJSON DcTrack where
+  parseJSON = withObject "DcTrack" $ \v ->
+    DcTrack
+      <$> v .: "position"
+      <*> v .: "title"
+      <*> v .: "duration"
 
 data DcBasicInformation = DcBasicInformation {
   dcId         :: Int,

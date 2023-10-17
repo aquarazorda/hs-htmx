@@ -28,13 +28,20 @@ library
       Components.Icons
       Components.Navbar
       Components.Product.Item
+      Components.Product.SaveForm
+      Components.Shadcn.Badge
       Components.Shadcn.Button
       Components.Shadcn.Dialog
       Components.Shadcn.Input
+      Components.Shadcn.Label
+      Components.Shadcn.ScrollArea
       Components.Shadcn.Table
+      Components.Shadcn.Textarea
+      Components.Shadcn.Toggle
       Components.Spinner
       Components.Table.Simple
       Data.Discogs.Folders
+      Data.Discogs.Release
       Data.Postgres.Category
       Data.Postgres.Label
       Data.Postgres.Product

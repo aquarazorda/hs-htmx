@@ -2,8 +2,8 @@
 
 module Data.WC.Product where
 
-import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
-import Data.WC.Category (WpCategory (..))
+import           Data.Aeson       (FromJSON, parseJSON, withObject, (.:))
+import           Data.WC.Category
 
 newtype MetaData = MetaData {value :: String}
   deriving (Show)
@@ -14,16 +14,16 @@ instance FromJSON MetaData where
       <$> v .: "value"
 
 data WpPost = WpPost
-  { id :: Int,
-    name :: String,
-    price :: String,
-    slug :: String,
+  { id                :: Int,
+    name              :: String,
+    price             :: String,
+    slug              :: String,
     short_description :: String,
-    stock_quantity :: Int,
-    permalink :: String,
-    related_ids :: Maybe [Int],
-    categories :: [WpCategory],
-    meta_data :: [MetaData]
+    stock_quantity    :: Int,
+    permalink         :: String,
+    related_ids       :: Maybe [Int],
+    categories        :: [WpCategory],
+    meta_data         :: [MetaData]
   }
 
 instance FromJSON WpPost where
