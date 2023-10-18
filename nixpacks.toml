@@ -4,4 +4,5 @@ providers = ["haskell", "node"]
 cmds = ["bun install", "bun tw", "stack build"]
 
 [phases.setup]
-nixPkgs = ["...", "glibc", "gcc"]
+nixPkgs = ["...", "glibc"]
+aptPkgs = ["...", "libtinfo-dev"]
