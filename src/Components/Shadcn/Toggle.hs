@@ -14,7 +14,9 @@ data ToggleSize = DefaultSize | Small | Large
 cnToggle :: ToggleVariant -> ToggleSize -> Text -> Text -> [Attribute] -> Html () -> Html ()
 cnToggle variant size val name attrs children = do
   button_ (attrs <> [
-    __ "on click toggle [@data-state=on] then toggle [@checked=true] on the <input/> in me ",
+    type_ "button",
+    __ "init get <input/> in me then if my @data-state is 'on' add @checked=true to it end \
+      \on click toggle [@data-state=on] then toggle [@checked=true] on the <input/> in me ",
     class_ $ unwords [" inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground", s, v]
     ]) $ do
       children

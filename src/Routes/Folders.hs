@@ -16,6 +16,7 @@ import           Components.Shadcn.Button    (ButtonSize (ButtonDefaultSize),
 import           Components.Shadcn.Table     (tableCell_, tableRow_)
 import           Components.Table.Simple     (TableHeader (TableHeader),
                                               simpleTable)
+import           Control.Monad.IO.Class      (MonadIO (liftIO))
 import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcGenres, dcId, dcStyles, dcThumb, dcTitle, dcYear),
                                               DcFolder (dcFolderCount, dcFolderId, dcFolderName),
                                               DcFolderReleaseRes (dcFolderReleasePagination, dcFolderReleases),
@@ -23,6 +24,7 @@ import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcG
                                               DcPagination (dcPaginationPage, dcPaginationPages),
                                               DcRelease (dcReleaseBasicInformation),
                                               foldersPath, getFullTitle)
+import           Data.Discogs.Release        (DcReleaseForm)
 import           Data.Foldable               (Foldable (foldl'))
 import           Data.List                   (intercalate)
 import           Data.Maybe                  (fromMaybe)
@@ -34,7 +36,8 @@ import           Lucid.Hyperscript           (withAutoFocus)
 import           Prelude                     hiding (concat)
 import           Router                      (GETRoute, PageResponse, PageRoute,
                                               getRoute)
-import           Servant                     (Capture, Get, Header, QueryParam,
+import           Servant                     (Capture, FormUrlEncoded, Get,
+                                              Header, Post, QueryParam, ReqBody,
                                               (:<|>) (..), (:>))
 import           Servant.HTML.Lucid          (HTML)
 import           Servant.Htmx                (HXRequest)
@@ -43,13 +46,21 @@ import           State                       (AppM)
 type FoldersRouter =  "folders" :> PageRoute
   :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> QueryParam "focusId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
   :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Post '[HTML] (Html ())
 
 foldersRouter :: GETRoute
   :<|> FolderContent
   :<|> ReleaseContent
+  :<|> (Int -> Int -> Maybe Text -> DcReleaseForm -> AppM (Html ()))
 foldersRouter = getRoute "/folders" foldersContent
   :<|> folderContent
   :<|> releaseContent
+  :<|> releasePost
+
+releasePost :: Int -> Int -> Maybe Text -> DcReleaseForm -> AppM (Html ())
+releasePost folderId releaseId cookies multipartData = do
+  liftIO $ print multipartData
+  pure $ "piure"
 
 getGenres :: [String] -> [String] -> String
 getGenres genres styles = intercalate ", " (genres ++ styles)

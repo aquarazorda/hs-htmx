@@ -6,14 +6,16 @@ import           Data.Aeson (FromJSON, parseJSON, withObject, (.!=), (.:),
                              (.:?))
 
 data WpCategory = WpCategory
-  { name  :: String,
-    slug  :: String,
-    count :: Int
+  { wpCatId :: Int,
+    name    :: String,
+    slug    :: String,
+    count   :: Int
   } deriving (Show)
 
 instance FromJSON WpCategory where
   parseJSON = withObject "WpCategory" $ \v ->
     WpCategory
-      <$> v .: "name"
+      <$> v .: "id"
+      <*> v .: "name"
       <*> v .: "slug"
       <*> v .:? "count" .!= 0
