@@ -8,17 +8,16 @@ import           Configuration.Dotenv             (defaultConfig, loadFile)
 import           Configuration.Dotenv.Environment (lookupEnv)
 import           Control.Monad.Trans.Reader       (ReaderT (runReaderT))
 import           Data.String                      (IsString (fromString))
+import           Data.Text                        (pack)
 import           Database.PostgreSQL.Simple       (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
                                                    defaultConnectInfo,
                                                    withConnect)
 import           Network.Wai.Handler.Warp         (defaultSettings, runSettings,
                                                    setHost, setPort)
-import           Routes.Categories                (CategoriesRouter,
-                                                   categoriesRouter)
+import           Routes.Folders                   (FoldersRouter, foldersRouter)
 import           Routes.Home                      (HomeRouter, homeRouter)
 import           Routes.Products                  (ProductsRouter,
                                                    productsRouter)
-import           Routes.Folders                   (FoldersRouter, foldersRouter)
 import           Servant                          (Application, Handler,
                                                    HasServer (ServerT),
                                                    Proxy (..), Raw, serve,
@@ -27,14 +26,14 @@ import           Servant                          (Application, Handler,
 import           Servant.Server                   (hoistServer)
 import           State                            (AppM,
                                                    DbEnv (dbName, dbPass, dbUrl, dbUsername),
-                                                   State (State), parseDbEnv, parseWpEnv)
-import Data.Text (pack)
+                                                   State (State), parseDbEnv,
+                                                   parseWpEnv)
 
 type API =
   "public" :> Raw
     :<|> HomeRouter
     :<|> ProductsRouter
-    :<|> CategoriesRouter
+    -- :<|> CategoriesRouter
     :<|> FoldersRouter
 
 api :: Proxy API
@@ -51,7 +50,7 @@ server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
     :<|> productsRouter
-    :<|> categoriesRouter
+    -- :<|> categoriesRouter
     :<|> foldersRouter
 
 main :: IO ()
@@ -63,14 +62,14 @@ main = do
   mDcToken <- lookupEnv "DC_TOKEN"
   case (wpEnv, dbEnv, mHostIp, mDcToken) of
     (Just wp, Just db, Just hostIp, Just dcToken) -> do
-      let connectionInfo = defaultConnectInfo {
-        connectHost = dbUrl db,
-        connectDatabase = dbName db,
-        connectUser = dbUsername db,
-        connectPassword = dbPass db
-      }
+      -- let connectionInfo = defaultConnectInfo {
+      --   connectHost = dbUrl db,
+      --   connectDatabase = dbName db,
+      --   connectUser = dbUsername db,
+      --   connectPassword = dbPass db
+      -- }
       let servantSettings = setPort 8080 $ setHost (fromString hostIp) defaultSettings
-      withConnect connectionInfo $ \dbconn -> do
-        putStrLn $ "Running on http://" <> hostIp <> ":8080"
-        runSettings servantSettings $ app (State wp dbconn (pack dcToken))
+      -- withConnect connectionInfo $ \dbconn -> do
+      putStrLn $ "Running on http://" <> hostIp <> ":8080"
+      runSettings servantSettings $ app (State wp (pack dcToken))
     _ -> putStrLn "Failed to parse .env file."

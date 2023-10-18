@@ -19,7 +19,9 @@ type MenuItem = (Text, [SubItem])
 
 menuItems :: [MenuItem]
 menuItems = [
-    ("Morevi", [("Home", "/", vortexIcon), ("Categories", "/categories", categoryIcon)])
+    ("Morevi", [("Home", "/", vortexIcon)
+    -- ("Categories", "/categories", categoryIcon)
+    ])
   , ("WooCommerce", [("Products", "/products", productIcon)])
   , ("Discogs", [("Folders", "/folders", foldersIcon)])
   ]

@@ -24,7 +24,7 @@ data DbEnv = DbEnv {
 
 data State = State
   { wp      :: WpEnv
-  , db      :: Connection
+  -- , db      :: Connection
   , dcToken :: Text
   }
 
