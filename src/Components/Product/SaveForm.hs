@@ -67,12 +67,12 @@ drawImages images = div_ [
       Nothing -> cnInput [name_ "image_url", id_ "image_input", class_ "z-20", placeholder_ "Please upload image somewhere and paste it here"]
       Just imgs -> do
         foldl' (\acc -> (acc <>) . drawImage) mempty $ zip [0..] imgs
-        cnInput [name_ "image_url", id_ "image_input", value_ $ pack $ dcImageUri $ head imgs, class_ "mt-auto z-20"]
+        cnInput [name_ "image_url", id_ "image_input", value_ $ pack $ dcImageUri (head imgs), class_ "mt-auto z-20"]
         where
           drawImage :: (Int, DcImage) -> Html ()
           drawImage (idx, image) = img_ [
             __ "on click add .active to <img/> in #release-images when it is not event.target then set value of #image_input to event.target.src",
-            class_ $ "w-52 h-52 lg:w-64 lg:h-64 z-20 cursor-pointer current:opacity-50 transition-opacity" <> if idx /= 0 then " active" else "",
+            class_ $ "w-40 h-40 lg:w-64 lg:h-64 z-20 cursor-pointer current:opacity-50 transition-opacity" <> if idx /= 0 then " active" else "",
             src_ $ pack $ dcImageUri image,
             loading_ "lazy"
             ]
@@ -86,7 +86,7 @@ drawCategories actualCats categories = div_ [class_ "flex flex-col flex-1 space-
     catItem :: Data.WC.Category.WpCategory -> Html ()
     catItem c = cnToggle Outline DefaultSize (pack $ show $ wpCatId c) "category"
       ([id_ name', class_ "flex-1 whitespace-nowrap"
-        , makeAttribute "data-state" $ if isChecked  then "on" else "off"
+        , if isChecked  then makeAttribute "data-state" "on" else makeAttribute "data-was-unchecked" "true"
         , __ "get the (innerHTML of first <span/> in me) as an Int if my @data-state is on decrement it else increment it end put it into <span/> in me"
       ]
       <> ([checked_ | isChecked]))
@@ -96,7 +96,7 @@ drawCategories actualCats categories = div_ [class_ "flex flex-col flex-1 space-
           span_ $ toHtml (show $ if isChecked then count c + 1 else count c)
         where
           name' = pack $ name c
-          isChecked = foldl' (\acc cat -> acc || (toLower name' `isInfixOf` pack cat)) False actualCats
+          isChecked = foldl' (\acc cat -> acc || cat /= "" && (toLower name' `isInfixOf` pack cat)) False actualCats
 
 productSaveForm :: Text -> Text -> AppM (Html ())
 productSaveForm folderId releaseId = do
@@ -118,14 +118,14 @@ productSaveForm folderId releaseId = do
             let label = head (dcLabels r)
             let categories = map (map C.toLower) (dcStyles r <> dcGenres r)
             let backNav = tabindex_ "-1" : navChangeAttrs ("/folders/" <> folderId <> "?focusId=" <> releaseId)
-            div_ [class_ "relative h-full flex-col bg-muted p-4 lg:p-10 text-white mb-3 lg:mb-0 dark:border-r lg:flex"] $ do
+            div_ [class_ "relative h-full flex-col bg-muted p-4 lg:p-10 mb-3 lg:mb-0 dark:border-r lg:flex"] $ do
               div_ [class_ "absolute inset-0 bg-zinc-900"] ""
               div_ [class_ "relative z-20"] $ do
                 blockquote_ [class_ "space-y-2"] $ do
-                  p_ [class_ "text-lg"] "Please choose an image, add price and stock in order to save."
-                  cnButton (Just ButtonLink) (Just ButtonSmall) (class_ "px-0" : backNav) "Go back."
+                  p_ [class_ "lg:text-lg text-white"] "Please choose an image, add price and stock in order to save."
+                  cnButton (Just ButtonLink) (Just ButtonSmall) (class_ "px-0 text-white" : backNav) "Go back."
               drawImages (dcImages r)
-            div_ [class_ "flex flex-col h-full lg:p-4 justify-between gap-4"] $ do
+            div_ [class_ "flex flex-col h-full p-4 justify-between gap-4"] $ do
               div_ [class_ "flex w-full flex-col justify-center space-y-6"] $ do
                 div_ [class_ "flex flex-col space-y-2"] $ do
                   cnLabel [for_ "title"] "Title"
