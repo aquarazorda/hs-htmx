@@ -1,5 +1,3 @@
-providers = ["haskell"]
-
 [phases.build]
 cmds = ["bun install", "bun tw", "stack build"]
 
