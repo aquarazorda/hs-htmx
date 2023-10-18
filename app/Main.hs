@@ -60,16 +60,17 @@ main = do
   dbEnv <- parseDbEnv
   mHostIp <- lookupEnv "HOST_IP"
   mDcToken <- lookupEnv "DC_TOKEN"
-  case (wpEnv, dbEnv, mHostIp, mDcToken) of
-    (Just wp, Just db, Just hostIp, Just dcToken) -> do
+  mPort <- lookupEnv "PORT"
+  case (wpEnv, dbEnv, mHostIp, mDcToken, mPort) of
+    (Just wp, Just db, Just hostIp, Just dcToken, Just port) -> do
       -- let connectionInfo = defaultConnectInfo {
       --   connectHost = dbUrl db,
       --   connectDatabase = dbName db,
       --   connectUser = dbUsername db,
       --   connectPassword = dbPass db
       -- }
-      let servantSettings = setPort 8080 $ setHost (fromString hostIp) defaultSettings
+      let servantSettings = setPort (read port) $ setHost (fromString hostIp) defaultSettings
       -- withConnect connectionInfo $ \dbconn -> do
-      putStrLn $ "Running on http://" <> hostIp <> ":8080"
+      putStrLn $ "Running on http://" <> hostIp <> ":" <> port
       runSettings servantSettings $ app (State wp (pack dcToken))
     _ -> putStrLn "Failed to parse .env file."
