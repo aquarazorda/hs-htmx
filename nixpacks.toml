@@ -1,6 +1,12 @@
 [phases.build]
-cmds = ["bun install", "bun build-styles", "stack build"]
+cmds = ["bun build-styles", "mkdir ./dist", "stack build --copy-bins --local-bin-path ./dist"]
 
 [phases.setup]
 nixPkgs = ["...", "glibc", "bun", "postgresql"]
 aptPkgs = ["...", "libtinfo-dev", "build-essential", "libpq-dev"]
+
+[phases.install]
+cmds = ["...", "bun install"]
+
+[start]
+cmd = "/app/dist/hs-web-exe"

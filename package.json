@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "tw": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
-    "build-styles": "tailwindcss -i ./src/styles.css -o ./public/styles.css",
+    "build-styles": "bunx tailwindcss -i ./src/styles.css -o ./public/styles.css",
     "start_db": "sudo service postgresql start"
   },
   "devDependencies": {
