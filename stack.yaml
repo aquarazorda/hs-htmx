@@ -43,8 +43,8 @@ packages:
 #
 # extra-deps: []
 extra-deps:
-  - ./extra/lucid-htmx/lucid
-  # git clone https://github.com/monadicsystems/lucid-htmx
+  - git: https://github.com/aquarazorda/lucid-htmx.git
+    commit: a61c7aaaba384677ce3aa40dec97be7b3655f389
   - git: https://github.com/monadicsystems/servant-htmx.git
     commit: db30209295bd0446d316cae5880fb7a6b36a733e
 

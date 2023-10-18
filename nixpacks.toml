@@ -1,0 +1,4 @@
+providers = ["haskell", "node"]
+
+[phases.build]
+cmds = ["bun install", "bun tw", "stack build"]
