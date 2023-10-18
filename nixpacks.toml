@@ -3,4 +3,4 @@ cmds = ["bun install", "bun build-styles", "stack build"]
 
 [phases.setup]
 nixPkgs = ["...", "glibc", "bun", "postgresql"]
-aptPkgs = ["...", "libtinfo-dev", "build-essential"]
+aptPkgs = ["...", "libtinfo-dev", "build-essential", "libpq-dev"]
