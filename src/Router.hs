@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Router (routePage, PageResponse, PageRoute, getRoute, GETRoute) where
+module Router (routePage, PageResponse, PageRoute, getRoute, GenericResponse) where
 
 import           Components.Navbar     (navBar)
 import           Components.Spinner    (spinner)
@@ -42,9 +42,9 @@ routePage cookies path content = do
   where
     isDarkMode = foldl' (\acc (name, value) -> acc || (name == "darkMode" && value == "true")) False cookies
 
-type GETRoute = Maybe Text -> Maybe Text -> AppM PageResponse
+type GenericResponse = Maybe Text -> Maybe Text -> AppM PageResponse
 
-getRoute :: Text -> AppM (Html ()) -> GETRoute
+getRoute :: Text -> AppM (Html ()) -> GenericResponse
 getRoute path content mCookies hx = case hx of
   Nothing -> (noHeader . commonHeaders) . routePage cookies path <$> content
   Just _  -> addHeader path . commonHeaders <$> content

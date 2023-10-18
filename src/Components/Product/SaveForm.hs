@@ -138,11 +138,11 @@ productSaveForm folderId releaseId = do
                   div_ [class_ "flex flex-col space-y-2 w-32"] $ do
                       cnLabel [for_ "condition"] "Condition"
                       cnSelect [name_ "condition"] $ do
-                        option_ [value_ "mint"] "Mint"
-                        option_ [value_ "vg+", selected_ ""] "VG+"
-                        option_ [value_ "vg"] "VG"
-                        option_ [value_ "g+"] "G+"
-                        option_ [value_ "g"] "G"
+                        option_ [value_ "M"] "Mint"
+                        option_ [value_ "VG+", selected_ ""] "VG+"
+                        option_ [value_ "VG"] "VG"
+                        option_ [value_ "G+"] "G+"
+                        option_ [value_ "G"] "G"
                   div_ [class_ "flex flex-col space-y-2 w-32"] $ do
                       cnLabel [for_ "status"] "Status"
                       cnSelect [name_ "status", value_ "publish"] $ do

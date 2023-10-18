@@ -5,6 +5,14 @@ module Data.Discogs.Release where
 import           Data.Aeson           (FromJSON (parseJSON), withObject, (.:),
                                        (.:?))
 import           Data.Discogs.Folders (DcLabel, DcTrack, DcVideo)
+import           Data.Foldable        (foldl')
+import           Data.List            (zip4)
+import           Data.Text            (Text, pack)
+import           Data.Text.Lazy       (toStrict)
+import           Data.WC.Product      (WpProduct (WpProduct))
+import           Lucid                (Html, ToHtml (toHtml), a_, class_, href_,
+                                       renderText, span_, table_, target_,
+                                       tbody_, td_, tr_, width_)
 import           Web.FormUrlEncoded   (FromForm, fromForm, parseAll,
                                        parseUnique)
 
@@ -51,20 +59,20 @@ instance FromJSON DcRelease where
       <*> v .:? "videos"
 
 data DcReleaseForm = DcReleaseForm {
-  dcFormImageUrl      :: String,
+  dcFormImageUrl      :: Text,
   dcFormCategories    :: [Int],
-  dcFormTitle         :: String,
-  dcFormLabel         :: String,
-  dcFormCatNo         :: String,
+  dcFormTitle         :: Text,
+  dcFormLabel         :: Text,
+  dcFormCatNo         :: Text,
   dcFormYear          :: Int,
   dcFormStock         :: Int,
-  dcFormCondition     :: String,
-  dcFormStatus        :: String,
+  dcFormCondition     :: Text,
+  dcFormStatus        :: Text,
   dcFormPrice         :: Double,
-  dcFormTrackPosition :: [String],
-  dcFormTrackTitle    :: [String],
-  dcFormTrackDuration :: [String],
-  dcFormTrackLink     :: [String]
+  dcFormTrackPosition :: [Text],
+  dcFormTrackTitle    :: [Text],
+  dcFormTrackDuration :: [Text],
+  dcFormTrackLink     :: [Text]
 } deriving (Show)
 
 instance FromForm DcReleaseForm where
@@ -83,3 +91,27 @@ instance FromForm DcReleaseForm where
     <*> parseAll "track_name" f
     <*> parseAll "track_duration" f
     <*> parseAll "track_link" f
+
+generateDescription :: DcReleaseForm -> Text
+generateDescription f = "ლეიბლი - " <> dcFormLabel f <> " / " <> dcFormCatNo f <> "\nწელი - " <> (pack . show) (dcFormYear f) <> "\n"
+    <> toStrict (renderText content)
+    <> "\nმდგომარეობა <strong><span style=\"color: #339966;\">კარგი (" <> dcFormCondition f <> ")</span></strong>"
+  where
+    tracklist = trackItem <$> zip4 (dcFormTrackPosition f) (dcFormTrackTitle f) (dcFormTrackDuration f) (dcFormTrackLink f)
+    trackItem :: (Text, Text, Text, Text) -> Html ()
+    trackItem (pos, tname, tdur, thref) = tr_ [class_ "tracklist_track track"] $ do
+      td_ [class_ "tracklist_track_pos"] (toHtml pos)
+      td_ [class_ "track tracklist_track_title"] $ do
+        case thref of
+          "" -> span_ $ toHtml tname
+          _  -> a_ [href_ thref, target_ "_blank"] (toHtml tname)
+      case tdur of
+        "" -> ""
+        _  -> td_ [class_ "tracklist_track_duration", width_ "25"] $ toHtml tdur
+    content :: Html ()
+    content = table_ [class_ "playlist"] $ do
+      tbody_ $ foldl' (<>) "" tracklist
+
+generateWpPostData :: DcReleaseForm -> WpProduct
+generateWpPostData f = do
+  WpProduct (dcFormTitle f) "simple" (pack . show $ dcFormPrice f) (generateDescription f) (dcFormCategories f) (dcFormStatus f) True (dcFormStock f) (dcFormImageUrl f)

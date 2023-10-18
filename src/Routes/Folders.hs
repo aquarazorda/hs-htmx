@@ -16,7 +16,6 @@ import           Components.Shadcn.Button    (ButtonSize (ButtonDefaultSize),
 import           Components.Shadcn.Table     (tableCell_, tableRow_)
 import           Components.Table.Simple     (TableHeader (TableHeader),
                                               simpleTable)
-import           Control.Monad.IO.Class      (MonadIO (liftIO))
 import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcGenres, dcId, dcStyles, dcThumb, dcTitle, dcYear),
                                               DcFolder (dcFolderCount, dcFolderId, dcFolderName),
                                               DcFolderReleaseRes (dcFolderReleasePagination, dcFolderReleases),
@@ -24,21 +23,23 @@ import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcG
                                               DcPagination (dcPaginationPage, dcPaginationPages),
                                               DcRelease (dcReleaseBasicInformation),
                                               foldersPath, getFullTitle)
-import           Data.Discogs.Release        (DcReleaseForm)
+import           Data.Discogs.Release        (DcReleaseForm, generateWpPostData)
 import           Data.Foldable               (Foldable (foldl'))
 import           Data.List                   (intercalate)
 import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text, concat, pack)
-import           Http                        (getDcResponse)
+import           Data.WC.Product             (WpProductResponse)
+import           Http                        (getDcResponse, postWp)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
                                               div_, id_, img_, span_, src_)
 import           Lucid.Hyperscript           (withAutoFocus)
-import           Prelude                     hiding (concat)
-import           Router                      (GETRoute, PageResponse, PageRoute,
-                                              getRoute)
+import           Prelude                     hiding (concat, putStrLn)
+import           Router                      (GenericResponse, PageResponse,
+                                              PageRoute, getRoute)
 import           Servant                     (Capture, FormUrlEncoded, Get,
                                               Header, Post, QueryParam, ReqBody,
-                                              (:<|>) (..), (:>))
+                                              err422, throwError, (:<|>) (..),
+                                              (:>))
 import           Servant.HTML.Lucid          (HTML)
 import           Servant.Htmx                (HXRequest)
 import           State                       (AppM)
@@ -46,21 +47,25 @@ import           State                       (AppM)
 type FoldersRouter =  "folders" :> PageRoute
   :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> QueryParam "focusId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
   :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Post '[HTML] (Html ())
+  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
 
-foldersRouter :: GETRoute
+foldersRouter :: GenericResponse
   :<|> FolderContent
   :<|> ReleaseContent
-  :<|> (Int -> Int -> Maybe Text -> DcReleaseForm -> AppM (Html ()))
+  :<|> ReleasePost
 foldersRouter = getRoute "/folders" foldersContent
   :<|> folderContent
   :<|> releaseContent
   :<|> releasePost
 
-releasePost :: Int -> Int -> Maybe Text -> DcReleaseForm -> AppM (Html ())
-releasePost folderId releaseId cookies multipartData = do
-  liftIO $ print multipartData
-  pure $ "piure"
+type ReleasePost = Int -> Int -> DcReleaseForm -> GenericResponse
+
+releasePost :: ReleasePost
+releasePost folderId releaseId formData cookies hx = do
+  (res :: Maybe WpProductResponse) <- postWp "/products" $ generateWpPostData formData
+  case res of
+    Nothing -> throwError err422
+    Just _  -> folderContent folderId (Just 1) (Just releaseId) cookies hx
 
 getGenres :: [String] -> [String] -> String
 getGenres genres styles = intercalate ", " (genres ++ styles)
@@ -82,7 +87,7 @@ foldersContent = do
               )
             tableHeaders = [TableHeader "Name" "", TableHeader "Count" ""]
 
-type FolderContent = Int -> Maybe Int -> Maybe Int -> GETRoute
+type FolderContent = Int -> Maybe Int -> Maybe Int -> GenericResponse
 
 folderContent :: FolderContent
 folderContent folderId page focusId = do
@@ -145,7 +150,7 @@ folderContent folderId page focusId = do
             basicInfo = dcReleaseBasicInformation item
             releasePath = "/folders/" <> pack fId <> "/" <> pack (show $ dcId basicInfo)
 
-type ReleaseContent = Int -> Int -> GETRoute
+type ReleaseContent = Int -> Int -> GenericResponse
 
 releaseContent :: ReleaseContent
 releaseContent folderId releaseId = getRoute ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId))

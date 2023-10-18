@@ -16,7 +16,8 @@ import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
                                             span_, td_, tr_)
 import           Lucid.Htmx                (hxGet_)
 import           Prelude                   hiding (id)
-import           Router                    (GETRoute, PageResponse, getRoute)
+import           Router                    (GenericResponse, PageResponse,
+                                            getRoute)
 import           Servant                   (Get, Header, (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)
@@ -52,5 +53,5 @@ postItem (WpPost {id = cId, name = cName, categories = cCategories, price = cPri
     categoryItem :: Cat.WpCategory -> Html ()
     categoryItem (Cat.WpCategory {Cat.name = cat}) = span_ [class_ "px-2 py-1 bg-red-200 text-red-800 rounded-md mr-1"] $ toHtml cat
 
-productsRouter :: GETRoute
+productsRouter :: GenericResponse
 productsRouter = getRoute "/products" content

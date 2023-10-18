@@ -25,7 +25,8 @@ import           Lucid                      (Html, ToHtml (toHtml), class_,
 import           Lucid.Htmx                 (hxPost_, hxSwap_, hxTarget_)
 import           Opaleye                    (Insert (Insert), rReturning,
                                              runInsert, runSelect, sqlString)
-import           Router                     (GETRoute, PageRoute, getRoute)
+import           Router                     (GenericResponse, PageRoute,
+                                             getRoute)
 import           Servant                    (FormUrlEncoded, Header, Headers,
                                              Post, ReqBody, addHeader, noHeader,
                                              type (:<|>) (..), (:>))
@@ -40,7 +41,7 @@ type AddCategoryHandlerResponse = Headers '[HXRetarget, HXReswap] (Html ())
 type CategoriesRouter = "categories" :> PageRoute
   :<|> "categories" :> "add" :> ReqBody '[FormUrlEncoded] CategoryForm :> Post '[HTML] AddCategoryHandlerResponse
 
-categoriesRouter :: GETRoute :<|> (CategoryForm -> AppM AddCategoryHandlerResponse)
+categoriesRouter :: GenericResponse :<|> (CategoryForm -> AppM AddCategoryHandlerResponse)
 categoriesRouter = getRoute "/categories" content :<|> addCategory
 
 formId :: Text

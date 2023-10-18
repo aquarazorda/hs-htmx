@@ -2,7 +2,9 @@
 
 module Data.WC.Product where
 
-import           Data.Aeson       (FromJSON, parseJSON, withObject, (.:))
+import           Data.Aeson       (FromJSON, ToJSON (toJSON), object, parseJSON,
+                                   withObject, (.:), (.=))
+import           Data.Text        (Text)
 import           Data.WC.Category
 
 newtype MetaData = MetaData {value :: String}
@@ -39,3 +41,38 @@ instance FromJSON WpPost where
       <*> v .: "related_ids"
       <*> v .: "categories"
       <*> v .: "meta_data"
+
+
+data WpProduct = WpProduct {
+  wpProductName          :: Text,
+  wpProductType          :: Text,
+  wpProductPrice         :: Text,
+  wpProductDescription   :: Text,
+  wpProductCategories    :: [Int],
+  wpProductStatus        :: Text,
+  wpProductManageStock   :: Bool,
+  wpProductStockQuantity :: Int,
+  wpProductImages        :: Text
+} deriving (Show)
+
+instance ToJSON WpProduct where
+  toJSON (WpProduct name type' price description categories status manageStock stockQuantity image) = object [
+    "name" .= name,
+    "type" .= type',
+    "regular_price" .= price,
+    "short_description" .= description,
+    "categories" .= fmap (\c -> object [ "id" .= c ]) categories,
+    "status" .= status,
+    "manage_stock" .= manageStock,
+    "stock_quantity" .= stockQuantity,
+    "images" .=  [object [ "src" .= image ]]
+    ]
+
+newtype WpProductResponse = WpProductResponse {
+  wpProductResponse :: Int
+} deriving (Show)
+
+instance FromJSON WpProductResponse where
+  parseJSON = withObject "WpProductResponse" $ \v ->
+    WpProductResponse
+      <$> v .: "id"
