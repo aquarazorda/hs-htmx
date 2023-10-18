@@ -22,7 +22,7 @@ menuItems = [
     ("Morevi", [("Home", "/", vortexIcon)
     -- ("Categories", "/categories", categoryIcon)
     ])
-  , ("WooCommerce", [("Products", "/products", productIcon)])
+  -- , ("WooCommerce", [("Products", "/products", productIcon)])
   , ("Discogs", [("Folders", "/folders", foldersIcon)])
   ]
 
@@ -48,8 +48,8 @@ navItem browserPath (text, path, icon) =
 
 navBar :: Text -> Html ()
 navBar path =
-  aside_ [class_ "sticky top-0 h-screen flex flex-col min-w-fit bg-background py-4 border-r"] $ do
-    div_ [class_ "flex flex-col mb-4 gap-4"] $
+  aside_ [class_ "flex flex-col lg:sticky lg:top-0 lg:h-screen lg:w-48 bg-background py-4 border-r flex-shrink-0 lg:flex-none"] $ do
+    div_ [class_ "flex lg:flex-col mb-4 gap-4"] $
       foldl1 (<>) $ fmap (\(text, items) -> do
         div_ [class_ "px-3 py-2"] $ do
           h2_ [class_ "mb-2 px-4 text-lg font-semibold tracking-tight"] $ toHtml text

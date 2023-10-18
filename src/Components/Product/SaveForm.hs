@@ -96,7 +96,7 @@ productSaveForm :: Text -> Text -> AppM (Html ())
 productSaveForm folderId releaseId = do
     (res :: Maybe DcRelease) <- getDcResponse $ "/releases/" <> releaseId
     (catRes :: Maybe [Data.WC.Category.WpCategory]) <- getWpResponse "/products/categories?per_page=100&orderby=count&order=desc"
-    pure $ form_ [hxPost_ "", __ "on htmx:responseError remove .hidden from #error-message", class_ "lg:container h-full overflow-hidden rounded-[0.5rem] lg:border bg-background shadow relative hidden flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"] $ do
+    pure $ form_ [hxPost_ "", __ "on htmx:responseError remove .hidden from #error-message", class_ "lg:container h-full overflow-hidden rounded-[0.5rem] lg:border bg-background shadow relative flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"] $ do
         case res of
           Nothing -> div_ [class_ "absolute inset-0 flex flex-col gap-1 items-center justify-center"] $ do
             "There was a problem"
@@ -105,7 +105,7 @@ productSaveForm folderId releaseId = do
             let title = pack $ dcArtists r <> " - " <> dcTitle r
             let label = head (dcLabels r)
             let categories = map (map C.toLower) (dcStyles r <> dcGenres r)
-            div_ [class_ "relative hidden h-full flex-col bg-muted p-10 space-y-6 text-white dark:border-r lg:flex"] $ do
+            div_ [class_ "relative h-full hidden flex-col bg-muted p-10 space-y-6 text-white dark:border-r lg:flex"] $ do
               div_ [class_ "absolute inset-0 bg-zinc-900"] ""
               div_ [class_ "relative z-20"] $ do
                 blockquote_ [class_ "space-y-2"] $ do
