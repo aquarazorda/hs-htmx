@@ -34,7 +34,7 @@ library
       Components.Shadcn.Dialog
       Components.Shadcn.Input
       Components.Shadcn.Label
-      Components.Shadcn.ScrollArea
+      Components.Shadcn.Select
       Components.Shadcn.Table
       Components.Shadcn.Textarea
       Components.Shadcn.Toggle
