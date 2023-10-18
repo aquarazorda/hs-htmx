@@ -43,12 +43,12 @@ content = do
 
 postItem :: WpPost -> Html ()
 postItem (WpPost {id = cId, name = cName, categories = cCategories, price = cPrice, stock_quantity = cQuantity}) =
-  tr_ [class_ "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer", hxGet_ $ "/product/" <> (pack . show $ cId)] $
+  tr_ [class_ "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer", hxGet_ $ "/product/" <> (pack . show $ cId)] $ do
     td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cName)
-      <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (foldl1 (<>) $ fmap categoryItem cCategories)
-      <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml (show cQuantity))
-      <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 text-right"] (toHtml cPrice)
-      <> td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (cnBtn "Edit")
+    td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (foldl1 (<>) $ fmap categoryItem cCategories)
+    td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml (show cQuantity))
+    td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 text-right"] (toHtml cPrice)
+    td_ [class_ "p-4 align-middle [&amp;:has([role=checkbox])]:pr-0"] (cnBtn "Edit")
   where
     categoryItem :: Cat.WpCategory -> Html ()
     categoryItem (Cat.WpCategory {Cat.name = cat}) = span_ [class_ "px-2 py-1 bg-red-200 text-red-800 rounded-md mr-1"] $ toHtml cat

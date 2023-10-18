@@ -2,8 +2,8 @@
 
 module Data.Discogs.Release where
 
-import           Data.Aeson           (FromJSON (parseJSON), withObject, (.:),
-                                       (.:?))
+import           Data.Aeson           (FromJSON (parseJSON), withObject, (.!=),
+                                       (.:), (.:?))
 import           Data.Discogs.Folders (DcLabel, DcTrack, DcVideo)
 import           Data.Foldable        (foldl')
 import           Data.List            (zip4)
@@ -32,7 +32,7 @@ instance FromJSON DcImage where
 data DcRelease = DcRelease {
   dcId        :: Int,
   dcThumb     :: String,
-  dcImages    :: [DcImage],
+  dcImages    :: Maybe [DcImage],
   dcTitle     :: String,
   dcYear      :: Int,
   dcArtists   :: String,
@@ -48,13 +48,13 @@ instance FromJSON DcRelease where
     DcRelease
       <$> v .: "id"
       <*> v .: "thumb"
-      <*> v .: "images"
+      <*> v .:? "images"
       <*> v .: "title"
       <*> v .: "year"
       <*> v .: "artists_sort"
       <*> v .: "labels"
-      <*> v .: "genres"
-      <*> v .: "styles"
+      <*> v .:? "genres" .!= [""]
+      <*> v .:? "styles" .!= [""]
       <*> v .: "tracklist"
       <*> v .:? "videos"
 

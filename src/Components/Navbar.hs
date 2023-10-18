@@ -2,8 +2,7 @@
 
 module Components.Navbar (navBar, isRouteActive, navChangeAttrs) where
 
-import           Components.Icons         (categoryIcon, foldersIcon,
-                                           productIcon, vortexIcon)
+import           Components.Icons         (foldersIcon, vortexIcon)
 import           Components.Shadcn.Button (ButtonSize (ButtonSmall),
                                            ButtonVariant (ButtonDefault, ButtonGhost),
                                            cnButton)
@@ -59,5 +58,5 @@ navBar path =
       cnButton (Just ButtonDefault) (Just ButtonSmall) [
         class_ "p-4 w-full justify-center",
         id_ "theme-toggler",
-        __ "init if cookies['darkMode'] is 'true' then put 'Light ☀️' into my innerHTML else put 'Dark 🌙' into my innerHTML end on click if my innerHTML is 'Light ☀️' then put 'Dark 🌙' into my innerHTML then remove .dark from body then set cookies['darkMode'] to {value: 'false'} else put 'Light ☀️' into my innerHTML then add .dark to body then set cookies['darkMode'] to {value: 'true'}"
+        __ "init if cookies['darkMode'] is 'true' then put 'Light ☀️' into my innerHTML else put 'Dark 🌙' into my innerHTML end on click if my innerHTML is 'Light ☀️' then put 'Dark 🌙' into my innerHTML then remove .dark from body then set cookies['darkMode'] to {value: 'false', maxAge: 34560000} else put 'Light ☀️' into my innerHTML then add .dark to body then set cookies['darkMode'] to {value: 'true', maxAge: 34560000}"
       ] ""

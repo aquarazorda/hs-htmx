@@ -31,7 +31,8 @@ import           Data.Text                   (Text, concat, pack)
 import           Data.WC.Product             (WpProductResponse)
 import           Http                        (getDcResponse, postWp)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
-                                              div_, id_, img_, span_, src_)
+                                              div_, id_, img_, loading_, span_,
+                                              src_)
 import           Lucid.Hyperscript           (withAutoFocus)
 import           Prelude                     hiding (concat, putStrLn)
 import           Router                      (GenericResponse, PageResponse,
@@ -81,7 +82,7 @@ foldersContent = do
           Just (DcFolderRes { folders = f }) -> foldl' (<>) "" (drawItem f)
           _                                  -> tableRow_ ""
           where
-            drawItem = fmap (\f' -> tableRow_ ([class_ " cursor-pointer"] <> navChangeAttrs ("/folders/" <> pack (show $ dcFolderId f'))) $ do
+            drawItem = fmap (\f' -> tableRow_ (class_ " cursor-pointer" : navChangeAttrs ("/folders/" <> pack (show $ dcFolderId f'))) $ do
               tableCell_ (toHtml $ dcFolderName f')
               tableCell_ (toHtml $ show $ dcFolderCount f')
               )
@@ -115,22 +116,22 @@ folderContent folderId page focusId = do
                   "Page " <> toHtml (show $ dcPaginationPage pagination) <> " of " <> toHtml (show $ dcPaginationPages pagination)
                 div_ [class_ "flex items-center space-x-2"] $ do
                   cnButton (Just ButtonOutline) Nothing (disableWhen (p < 2)
-                    [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=1")
+                    $ class_ "hidden h-8 w-8 p-0 lg:flex justify-center" : navChangeAttrs ("/folders/" <> pack fId <> "?page=1")
                     ) $ do
                     span_ [class_ "sr-only"] "Go to first page"
                     doubleArrowLeft [class_ "h-4 w-4"]
                   cnButton (Just ButtonOutline) Nothing (disableWhen (p < 2)
-                    [class_ "h-8 w-8 p-0 justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p - 1))
+                    $ class_ "h-8 w-8 p-0 justify-center" : navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p - 1))
                     ) $ do
                     span_ [class_ "sr-only"] "Go to previous page"
                     arrowLeft [class_ "h-4 w-4"]
                   cnButton (Just ButtonOutline) Nothing (disableWhen (p >= dcPaginationPages pagination)
-                    [class_ "h-8 w-8 p-0 justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p + 1))
+                    $ class_ "h-8 w-8 p-0 justify-center" : navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ p + 1))
                     ) $ do
                     span_ [class_ "sr-only"] "Go to next page"
                     arrowRight [class_ "h-4 w-4"]
                   cnButton (Just ButtonOutline) Nothing (disableWhen (p >= dcPaginationPages pagination)
-                    [class_ "hidden h-8 w-8 p-0 lg:flex justify-center"] <> navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ dcPaginationPages pagination))
+                    $ class_ "hidden h-8 w-8 p-0 lg:flex justify-center" : navChangeAttrs ("/folders/" <> pack fId <> "?page=" <> pack (show $ dcPaginationPages pagination))
                     ) $ do
                     span_ [class_ "sr-only"] "Go to last page"
                     doubleArrowRight [class_ "h-4 w-4"]
@@ -140,7 +141,7 @@ folderContent folderId page focusId = do
       drawItem :: DcRelease -> Html ()
       drawItem item = do
           tableRow_ ([class_ "cursor-pointer", id_ $ pack $ show (dcId basicInfo), withAutoFocus (dcId basicInfo == fromMaybe 0 focusId) ] <> navChangeAttrs releasePath) $ do
-            tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20"]
+            tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20", loading_ "lazy"]
             tableCell_ [class_ "max-w-md truncate"] $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
             tableCell_ [class_ "max-w-md truncate"] $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
             tableCell_ $ toHtml (show $ dcYear basicInfo)

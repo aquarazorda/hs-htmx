@@ -10,7 +10,7 @@ data ButtonVariant = ButtonDefault | ButtonDestructive | ButtonOutline | ButtonS
 data ButtonSize = ButtonDefaultSize | ButtonSmall | ButtonMedium | ButtonLarge
 
 disableWhen :: Bool -> [Attribute] -> [Attribute]
-disableWhen True attrs  = attrs <> [disabled_ ""]
+disableWhen True attrs  = disabled_ "" : attrs
 disableWhen False attrs = attrs
 
 cnButton :: Term arg result => Maybe ButtonVariant -> Maybe ButtonSize -> arg -> result

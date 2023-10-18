@@ -5,7 +5,7 @@ module Components.Product.SaveForm where
 
 import           Components.Navbar        (navChangeAttrs)
 import           Components.Shadcn.Button (ButtonSize (ButtonSmall),
-                                           ButtonVariant (ButtonDestructive, ButtonSecondary),
+                                           ButtonVariant (ButtonDestructive, ButtonLink, ButtonSecondary),
                                            cnBtn, cnButton)
 import           Components.Shadcn.Input  (cnInput)
 import           Components.Shadcn.Label  (cnLabel)
@@ -25,12 +25,13 @@ import           Data.WC.Category         (WpCategory (count, name, wpCatId))
 import           Http                     (getDcResponse, getWpResponse)
 import           Lucid                    (Html, ToHtml (toHtml), autofocus_,
                                            blockquote_, checked_, class_, div_,
-                                           fieldset_, footer_, for_, form_, id_,
-                                           img_, input_, name_, option_, p_,
-                                           selected_, span_, src_, tabindex_,
-                                           type_, value_)
+                                           fieldset_, for_, form_, id_, img_,
+                                           loading_, name_, option_, p_,
+                                           placeholder_, selected_, span_, src_,
+                                           tabindex_, type_, value_)
 import           Lucid.Base               (makeAttribute)
-import           Lucid.Htmx               (hxPost_)
+import           Lucid.Htmx               (hxIndicator_, hxPost_, hxSwap_,
+                                           hxTarget_)
 import           Lucid.Hyperscript        (__)
 import           State                    (AppM)
 
@@ -48,28 +49,33 @@ drawTracklist mVideos tracks = div_ [class_ "flex flex-col space-y-2 max-h-96 ov
   where
     drawTrack :: DcTrack -> Html ()
     drawTrack track = div_ [class_ "flex space-x-2 items-center" ] $ do
-      cnInput [name_ "track_position", value_ $ pack $ dcTrackPosition track, class_ "!w-12"]
+      cnInput [name_ "track_position", value_ $ pack $ dcTrackPosition track, class_ "hidden lg:block !w-12"]
       cnInput [name_ "track_name", value_ $ pack $ dcTrackTitle track]
-      cnInput [name_ "track_duration", value_ $ pack $ dcTrackDuration track, class_ "!w-16"]
-      cnInput [name_ "track_link", value_ videoLink, class_ "!w-16"]
-      cnButton (Just ButtonSecondary) (Just ButtonSmall) [__ "on click get value of the previous <input/> then go to url `$it` in new window"] "Play"
+      cnInput [name_ "track_duration", value_ $ pack $ dcTrackDuration track, class_ "!w-16", placeholder_ "00:00"]
+      cnInput [name_ "track_link", value_ videoLink, class_ "!w-16", placeholder_ "https://youtube.com/..."]
+      cnButton (Just ButtonSecondary) (Just ButtonSmall) [__ "on click get value of the previous <input/> then go to url `$it` in new window", class_ "hidden lg:block"] "Play"
       cnButton (Just ButtonDestructive) (Just ButtonSmall) [__ "on click remove closest parent <div/>"] "Remove"
       where
         videoLink = getVideoLink mVideos (pack $ dcTrackTitle track)
 
-drawImages :: [DcImage] -> Html ()
+drawImages :: Maybe [DcImage] -> Html ()
 drawImages images = div_ [
-  class_ "flex flex-wrap gap-4 z-20",
+  class_ "flex flex-wrap gap-4 z-20 h-full",
   id_ "release-images"
   ] $ do
-  input_ [name_ "image_url", class_ "hidden", id_ "image_input", value_ $ pack $ dcImageUri $ head images]
-  foldl' (<>) "" $ fmap drawImage images
-  where
-    drawImage :: DcImage -> Html ()
-    drawImage image = img_ [
-      __ "on click add .active to <img/> in #release-images when it is not event.target then set value of #image_input to event.target.src",
-      class_ "w-64 cursor-pointer current:opacity-50 transition-opacity", src_ $ pack $ dcImageUri image
-      ]
+    case images of
+      Nothing -> cnInput [name_ "image_url", id_ "image_input", class_ "z-20", placeholder_ "Please upload image somewhere and paste it here"]
+      Just imgs -> do
+        foldl' (\acc -> (acc <>) . drawImage) mempty $ zip [0..] imgs
+        cnInput [name_ "image_url", id_ "image_input", value_ $ pack $ dcImageUri $ head imgs, class_ "mt-auto z-20"]
+        where
+          drawImage :: (Int, DcImage) -> Html ()
+          drawImage (idx, image) = img_ [
+            __ "on click add .active to <img/> in #release-images when it is not event.target then set value of #image_input to event.target.src",
+            class_ $ "w-52 h-52 lg:w-64 lg:h-64 z-20 cursor-pointer current:opacity-50 transition-opacity" <> if idx /= 0 then " active" else "",
+            src_ $ pack $ dcImageUri image,
+            loading_ "lazy"
+            ]
 
 drawCategories :: [String] -> [Data.WC.Category.WpCategory] -> Html ()
 drawCategories actualCats categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
@@ -96,7 +102,13 @@ productSaveForm :: Text -> Text -> AppM (Html ())
 productSaveForm folderId releaseId = do
     (res :: Maybe DcRelease) <- getDcResponse $ "/releases/" <> releaseId
     (catRes :: Maybe [Data.WC.Category.WpCategory]) <- getWpResponse "/products/categories?per_page=100&orderby=count&order=desc"
-    pure $ form_ [hxPost_ "", __ "on htmx:responseError remove .hidden from #error-message", class_ "lg:container h-full overflow-hidden rounded-[0.5rem] lg:border bg-background shadow relative flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0"] $ do
+    pure $ form_ [
+      hxPost_ "",
+      hxSwap_ "innerHTML scroll:top",
+      hxTarget_ "#router-outlet",
+      hxIndicator_ "#body",
+      __ "on htmx:responseError remove .hidden from #error-message",
+      class_ "lg:container min-h-fit h-full overflow-hidden rounded-[0.5rem] lg:border bg-background shadow relative flex-col items-center justify-center lg:max-w-none lg:grid lg:grid-cols-2 lg:px-0"] $ do
         case res of
           Nothing -> div_ [class_ "absolute inset-0 flex flex-col gap-1 items-center justify-center"] $ do
             "There was a problem"
@@ -105,14 +117,15 @@ productSaveForm folderId releaseId = do
             let title = pack $ dcArtists r <> " - " <> dcTitle r
             let label = head (dcLabels r)
             let categories = map (map C.toLower) (dcStyles r <> dcGenres r)
-            div_ [class_ "relative h-full hidden flex-col bg-muted p-10 space-y-6 text-white dark:border-r lg:flex"] $ do
+            let backNav = tabindex_ "-1" : navChangeAttrs ("/folders/" <> folderId <> "?focusId=" <> releaseId)
+            div_ [class_ "relative h-full flex-col bg-muted p-4 lg:p-10 text-white mb-3 lg:mb-0 dark:border-r lg:flex"] $ do
               div_ [class_ "absolute inset-0 bg-zinc-900"] ""
               div_ [class_ "relative z-20"] $ do
                 blockquote_ [class_ "space-y-2"] $ do
                   p_ [class_ "text-lg"] "Please choose an image, add price and stock in order to save."
-                  footer_ [class_ "text-sm"] "You can always edit release later."
-              drawImages $ dcImages r
-            div_ [class_ "flex flex-col h-full p-4 justify-between"] $ do
+                  cnButton (Just ButtonLink) (Just ButtonSmall) (class_ "px-0" : backNav) "Go back."
+              drawImages (dcImages r)
+            div_ [class_ "flex flex-col h-full lg:p-4 justify-between gap-4"] $ do
               div_ [class_ "flex w-full flex-col justify-center space-y-6"] $ do
                 div_ [class_ "flex flex-col space-y-2"] $ do
                   cnLabel [for_ "title"] "Title"
@@ -150,10 +163,9 @@ productSaveForm folderId releaseId = do
                         option_ [value_ "draft"] "Draft"
                   div_ [class_ "flex flex-col space-y-2 w-24"] $ do
                       cnLabel [for_ "price"] "Price"
-                      cnInput [name_ "price", value_ "", type_ "number", autofocus_]
+                      cnInput [name_ "price", value_ "", autofocus_, placeholder_ "0.00"]
               p_ [ id_ "error-message", class_ "hidden text-red-600 self-end" ] "You're missing something."
               div_ [class_ "flex w-full"] $ do
-                cnButton (Just ButtonDestructive) (Just ButtonSmall)
-                  (navChangeAttrs ("/folders/" <> folderId <> "?focusId=" <> releaseId) <> [tabindex_ "-1"])  "Back"
+                cnButton (Just ButtonDestructive) (Just ButtonSmall) backNav  "Back"
                 cnBtn [class_ "ml-auto", type_ "submit"] "Save"
 
