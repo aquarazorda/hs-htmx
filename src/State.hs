@@ -1,12 +1,12 @@
 module State where
 
-import           Configuration.Dotenv.Environment (lookupEnv)
-import           Control.Monad.Trans.Reader       (ReaderT)
-import           Data.ByteString                  (ByteString)
-import           Data.Text                        (Text, pack)
-import           Data.Text.Encoding               (encodeUtf8)
-import           Database.PostgreSQL.Simple       (Connection)
-import           Servant                          (Handler)
+import           Control.Monad.Trans.Reader (ReaderT)
+import           Data.ByteString            (ByteString)
+import           Data.Text                  (Text, pack)
+import           Data.Text.Encoding         (encodeUtf8)
+import           Database.PostgreSQL.Simple (Connection)
+import           Servant                    (Handler)
+import           System.Environment         (lookupEnv)
 
 type AppM = ReaderT State Handler
 

@@ -4,30 +4,27 @@
 
 module Main (main) where
 
-import           Configuration.Dotenv             (defaultConfig, loadFile)
-import           Configuration.Dotenv.Environment (lookupEnv)
-import           Control.Monad.Trans.Reader       (ReaderT (runReaderT))
-import           Data.String                      (IsString (fromString))
-import           Data.Text                        (pack)
-import           Database.PostgreSQL.Simple       (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
-                                                   defaultConnectInfo,
-                                                   withConnect)
-import           Network.Wai.Handler.Warp         (defaultSettings, runSettings,
-                                                   setHost, setPort)
-import           Routes.Folders                   (FoldersRouter, foldersRouter)
-import           Routes.Home                      (HomeRouter, homeRouter)
-import           Routes.Products                  (ProductsRouter,
-                                                   productsRouter)
-import           Servant                          (Application, Handler,
-                                                   HasServer (ServerT),
-                                                   Proxy (..), Raw, serve,
-                                                   serveDirectoryFileServer,
-                                                   type (:<|>) (..), type (:>))
-import           Servant.Server                   (hoistServer)
-import           State                            (AppM,
-                                                   DbEnv (dbName, dbPass, dbUrl, dbUsername),
-                                                   State (State), parseDbEnv,
-                                                   parseWpEnv)
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT))
+import           Data.String                (IsString (fromString))
+import           Data.Text                  (pack)
+import           Database.PostgreSQL.Simple (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
+                                             defaultConnectInfo, withConnect)
+import           Network.Wai.Handler.Warp   (defaultSettings, runSettings,
+                                             setHost, setPort)
+import           Routes.Folders             (FoldersRouter, foldersRouter)
+import           Routes.Home                (HomeRouter, homeRouter)
+import           Routes.Products            (ProductsRouter, productsRouter)
+import           Servant                    (Application, Handler,
+                                             HasServer (ServerT), Proxy (..),
+                                             Raw, serve,
+                                             serveDirectoryFileServer,
+                                             type (:<|>) (..), type (:>))
+import           Servant.Server             (hoistServer)
+import           State                      (AppM,
+                                             DbEnv (dbName, dbPass, dbUrl, dbUsername),
+                                             State (State), parseDbEnv,
+                                             parseWpEnv)
+import           System.Environment         (lookupEnv)
 
 type API =
   "public" :> Raw
@@ -55,7 +52,6 @@ server =
 
 main :: IO ()
 main = do
-  loadFile defaultConfig
   wpEnv <- parseWpEnv
   dbEnv <- parseDbEnv
   mHostIp <- lookupEnv "HOST_IP"

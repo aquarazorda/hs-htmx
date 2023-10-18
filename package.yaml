@@ -30,7 +30,6 @@ dependencies:
 - servant-lucid
 - text
 - http-types
-- dotenv
 - transformers
 - http-client
 - http-conduit
