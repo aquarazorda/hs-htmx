@@ -84,7 +84,7 @@ foldersContent = do
           Just (DcFolderRes { folders = f }) -> foldl' (<>) "" (drawItem f)
           _                                  -> tableRow_ ""
           where
-            drawItem = fmap (\f' -> tableRow_ (class_ " cursor-pointer" : navChangeAttrs ("/folders/" <> pack (show $ dcFolderId f'))) $ do
+            drawItem = fmap (\f' -> tableRow_ (class_ " cursor-pointer" : navChangeAttrs ("/folders/" <> pack (show $ dcFolderId f') <> "?page=1")) $ do
               tableCell_ (toHtml $ dcFolderName f')
               tableCell_ (toHtml $ show $ dcFolderCount f')
               )
