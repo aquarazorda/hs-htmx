@@ -20,12 +20,13 @@ import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcG
                                               DcFolder (dcFolderCount, dcFolderId, dcFolderName),
                                               DcFolderReleaseRes (dcFolderReleasePagination, dcFolderReleases),
                                               DcFolderRes (DcFolderRes, folders),
+                                              DcNote (dcFieldId, dcValue),
                                               DcPagination (dcPaginationPage, dcPaginationPages),
-                                              DcRelease (dcReleaseBasicInformation),
+                                              DcRelease (dcNotes, dcReleaseBasicInformation),
                                               foldersPath, getFullTitle)
 import           Data.Discogs.Release        (DcReleaseForm, generateWpPostData)
 import           Data.Foldable               (Foldable (foldl'))
-import           Data.List                   (intercalate)
+import           Data.List                   (find, intercalate)
 import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text, concat, pack)
 import           Data.WC.Product             (WpProductResponse)
@@ -44,10 +45,11 @@ import           Servant                     (Capture, FormUrlEncoded, Get,
 import           Servant.HTML.Lucid          (HTML)
 import           Servant.Htmx                (HXRequest)
 import           State                       (AppM)
+import           Utils                       (extractFirstNumToDouble)
 
 type FoldersRouter =  "folders" :> PageRoute
   :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> QueryParam "focusId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" String :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
   :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
 
 foldersRouter :: GenericResponse
@@ -149,10 +151,21 @@ folderContent folderId page focusId = do
               cnBtn (navChangeAttrs releasePath) "Add"
           where
             basicInfo = dcReleaseBasicInformation item
-            releasePath = "/folders/" <> pack fId <> "/" <> pack (show $ dcId basicInfo)
+            releasePath = "/folders/" <> pack fId <> "/" <> pack (show $ dcId basicInfo) <> priceAsQueryString (getItemPrice item)
 
-type ReleaseContent = Int -> Int -> GenericResponse
+getItemPrice :: DcRelease -> Double
+getItemPrice dcRelease = maybe 0.00 (decrement . extractFirstNumToDouble . dcValue) (find (\i -> dcFieldId i == 3) =<< dcNotes dcRelease)
+  where
+    decrement d = if d > 0 then d - 0.01 else d
+
+priceAsQueryString :: Double -> Text
+priceAsQueryString p = "?price=" <> pack (show p)
+
+type ReleaseContent = Int -> Int -> Maybe String -> GenericResponse
 
 releaseContent :: ReleaseContent
-releaseContent folderId releaseId = getRoute ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId))
-  $ productSaveForm (pack $ show folderId) (pack $ show releaseId)
+releaseContent folderId releaseId mPrice = getRoute
+  ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId) <> "?price=" <> price)
+  $ productSaveForm price (pack $ show folderId) (pack $ show releaseId)
+  where
+    price = maybe "0.00" pack mPrice

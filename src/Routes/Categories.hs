@@ -4,48 +4,56 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Routes.Categories (CategoriesRouter) where
+module Routes.Categories (CategoriesRouter, categoriesRouter) where
 
-import           Components.Shadcn.Button (cnBtn)
-import           Components.Shadcn.Input  (cnInput)
-import           Components.Shadcn.Table  (tableCell_, tableRow_)
-import           Data.Postgres.Category   (Category,
-                                           Category' (Category, categoryName, categorySlug),
-                                           CategoryForm)
-import           Data.Text                (Text)
-import           Lucid                    (Html, ToHtml (toHtml), class_, form_,
-                                           id_, name_, type_)
-import           Router                   (PageRoute)
-import           Servant                  (FormUrlEncoded, Header, Headers,
-                                           Post, ReqBody, type (:<|>) (..),
-                                           (:>))
-import           Servant.HTML.Lucid       (HTML)
-import           Servant.Htmx             (HXRetarget)
+import           Components.Product.SaveForm (drawCategories)
+import           Data.Text                   (Text)
+import           Data.WC.Category            (WpCategory)
+import           Http                        (getWpResponse)
+import           Lucid                       (Html, ToHtml (toHtml))
+import           Servant                     (Get, Header, Headers, addHeader,
+                                              (:>))
+import           Servant.HTML.Lucid          (HTML)
+import           State                       (AppM)
 
-type HXReswap = Header "HX-Reswap" Text
+-- type HXReswap = Header "HX-Reswap" Text
 
-type AddCategoryHandlerResponse = Headers '[HXRetarget, HXReswap] (Html ())
+-- type AddCategoryHandlerResponse = Headers '[HXRetarget, HXReswap] (Html ())
 
-type CategoriesRouter = "categories" :> PageRoute
-  :<|> "categories" :> "add" :> ReqBody '[FormUrlEncoded] CategoryForm :> Post '[HTML] AddCategoryHandlerResponse
+-- type CategoriesRouter = "categories" :> PageRoute
+--   :<|> "categories" :> "add" :> ReqBody '[FormUrlEncoded] CategoryForm :> Post '[HTML] AddCategoryHandlerResponse
 
 -- categoriesRouter :: GenericResponse :<|> (CategoryForm -> AppM AddCategoryHandlerResponse)
 -- categoriesRouter = getRoute "/categories" content :<|> addCategory
 
-formId :: Text
-formId = "add_category_form"
+type CategoriesRouter = "categories" :> "wp" :> Get '[HTML] GetCategories
 
-categoryItem :: Category -> Html ()
-categoryItem (Category{categoryName = cName, categorySlug = cSlug}) = tableRow_ $ do
-  tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cName)
-  tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cSlug)
-  tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] ""
+categoriesRouter :: AppM GetCategories
+categoriesRouter = getCategories
 
-addItemForm :: Html ()
-addItemForm = tableRow_ [id_ "add-item"] $ do
-  tableCell_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "name", form_ formId]
-  tableCell_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "slug", form_ formId]
-  tableCell_ [class_ "p-2 align-middle"] $ cnBtn [type_ "submit", form_ formId] "Save"
+type GetCategories = Headers '[Header "Cache-Control" String] (Html ())
+
+getCategories :: AppM GetCategories
+getCategories = do
+  (catRes :: Maybe [WpCategory]) <- getWpResponse "/products/categories?per_page=100&orderby=count&order=desc"
+  pure $ case catRes of
+    Just cats -> addHeader "max-age=180" $ drawCategories cats
+    Nothing   -> addHeader "max-age=0" $ toHtml ("Error loading categories" :: Text)
+
+-- formId :: Text
+-- formId = "add_category_form"
+
+-- categoryItem :: Category -> Html ()
+-- categoryItem (Category{categoryName = cName, categorySlug = cSlug}) = tableRow_ $ do
+--   tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cName)
+--   tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] (toHtml cSlug)
+--   tableCell_ [class_ "p-2 align-middle [&amp;:has([role=checkbox])]:pr-0"] ""
+
+-- addItemForm :: Html ()
+-- addItemForm = tableRow_ [id_ "add-item"] $ do
+--   tableCell_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "name", form_ formId]
+--   tableCell_ [class_ "p-2 align-middle"] $ cnInput [type_ "text", name_ "slug", form_ formId]
+--   tableCell_ [class_ "p-2 align-middle"] $ cnBtn [type_ "submit", form_ formId] "Save"
 
 -- content :: AppM (Html ())
 -- content = do

@@ -37,8 +37,8 @@ data DcRelease = DcRelease {
   dcYear      :: Int,
   dcArtists   :: String,
   dcLabels    :: [DcLabel],
-  dcGenres    :: [String],
-  dcStyles    :: [String],
+  dcGenres    :: [Text],
+  dcStyles    :: [Text],
   dcTracklist :: [DcTrack],
   dcVideos    :: Maybe [DcVideo]
 } deriving (Show)

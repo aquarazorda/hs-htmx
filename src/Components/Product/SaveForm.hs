@@ -12,28 +12,28 @@ import           Components.Shadcn.Label  (cnLabel)
 import           Components.Shadcn.Select (cnSelect)
 import           Components.Shadcn.Toggle (ToggleSize (DefaultSize),
                                            ToggleVariant (Outline), cnToggle)
-import qualified Data.Char                as C (toLower)
 import           Data.Discogs.Folders     (DcLabel (dcLabelCatNo, dcLabelName),
                                            DcTrack (dcTrackDuration, dcTrackPosition, dcTrackTitle),
                                            DcVideo (dcVideoTitle, dcVideoUrl))
 import           Data.Discogs.Release
 import           Data.Foldable            (foldl')
 import           Data.List                (find)
-import           Data.Maybe               (fromMaybe)
 import           Data.Text                (Text, isInfixOf, pack, toLower)
 import           Data.WC.Category         (WpCategory (count, name, wpCatId))
-import           Http                     (getDcResponse, getWpResponse)
+import           Htmx                     (hxDisinherit_)
+import           Http                     (getDcResponse)
 import           Lucid                    (Html, ToHtml (toHtml), autofocus_,
-                                           blockquote_, checked_, class_, div_,
-                                           fieldset_, for_, form_, id_, img_,
-                                           loading_, name_, option_, p_,
-                                           placeholder_, selected_, span_, src_,
-                                           tabindex_, type_, value_)
+                                           blockquote_, class_, div_, fieldset_,
+                                           for_, form_, id_, img_, loading_,
+                                           name_, option_, p_, placeholder_,
+                                           selected_, span_, src_, tabindex_,
+                                           type_, value_)
 import           Lucid.Base               (makeAttribute)
-import           Lucid.Htmx               (hxIndicator_, hxPost_, hxSwap_,
-                                           hxTarget_)
+import           Lucid.Htmx               (hxGet_, hxIndicator_, hxPost_,
+                                           hxSwap_, hxTarget_, hxTrigger_)
 import           Lucid.Hyperscript        (__)
 import           State                    (AppM)
+import           Utils                    (concatAsPrintable)
 
 getVideoLink :: Maybe [DcVideo] -> Text -> Text
 getVideoLink Nothing _ = ""
@@ -52,7 +52,7 @@ drawTracklist mVideos tracks = div_ [class_ "flex flex-col space-y-2 max-h-96 ov
       cnInput [name_ "track_position", value_ $ pack $ dcTrackPosition track, class_ "hidden lg:block !w-12"]
       cnInput [name_ "track_name", value_ $ pack $ dcTrackTitle track]
       cnInput [name_ "track_duration", value_ $ pack $ dcTrackDuration track, class_ "!w-16", placeholder_ "00:00"]
-      cnInput [name_ "track_link", value_ videoLink, class_ "!w-16", placeholder_ "https://youtube.com/..."]
+      cnInput [name_ "track_link", value_ videoLink, class_ "!w-16", placeholder_ "Link"]
       cnButton (Just ButtonSecondary) (Just ButtonSmall) [__ "on click get value of the previous <input/> then go to url `$it` in new window", class_ "hidden lg:block"] "Play"
       cnButton (Just ButtonDestructive) (Just ButtonSmall) [__ "on click remove closest parent <div/>"] "Remove"
       where
@@ -77,37 +77,36 @@ drawImages images = div_ [
             loading_ "lazy"
             ]
 
-drawCategories :: [String] -> [Data.WC.Category.WpCategory] -> Html ()
-drawCategories actualCats categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
+drawCategories :: [Data.WC.Category.WpCategory] -> Html ()
+drawCategories categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
   cnLabel [for_ "release-title"] "Category"
   fieldset_ [class_ "flex gap-1 flex-wrap h-56 overflow-y-auto scrollbar-hide border p-2 rounded-md"] $ do
     foldl' (<>) "" $ fmap catItem categories
   where
     catItem :: Data.WC.Category.WpCategory -> Html ()
     catItem c = cnToggle Outline DefaultSize (pack $ show $ wpCatId c) "category"
-      ([id_ name', class_ "flex-1 whitespace-nowrap"
-        , if isChecked  then makeAttribute "data-state" "on" else makeAttribute "data-was-unchecked" "true"
+      [id_ "category-button", class_ "flex-1 whitespace-nowrap"
         , __ "get the (innerHTML of first <span/> in me) as an Int if my @data-state is on decrement it else increment it end put it into <span/> in me"
+        , makeAttribute "data-value" $ toLower name'
       ]
-      <> ([checked_ | isChecked]))
       $ do
         div_ [class_ "flex gap-2"] $ do
           p_ $ toHtml (name c)
-          span_ $ toHtml (show $ if isChecked then count c + 1 else count c)
+          span_ $ toHtml (show $ count c)
         where
           name' = pack $ name c
-          isChecked = foldl' (\acc cat -> acc || cat /= "" && (toLower name' `isInfixOf` pack cat)) False actualCats
 
-productSaveForm :: Text -> Text -> AppM (Html ())
-productSaveForm folderId releaseId = do
+productSaveForm :: Text -> Text -> Text -> AppM (Html ())
+productSaveForm price folderId releaseId = do
     (res :: Maybe DcRelease) <- getDcResponse $ "/releases/" <> releaseId
-    (catRes :: Maybe [Data.WC.Category.WpCategory]) <- getWpResponse "/products/categories?per_page=100&orderby=count&order=desc"
     pure $ form_ [
       hxPost_ "",
       hxSwap_ "innerHTML scroll:top",
       hxTarget_ "#router-outlet",
+      hxDisinherit_ "*",
       hxIndicator_ "#body",
-      __ "on htmx:responseError remove .hidden from #error-message",
+      __ "on htmx:responseError remove .hidden from #error-message then remove @disabled from #submit-button\
+      \ on htmx:beforeRequest add @disabled to #submit-button",
       class_ "lg:container min-h-fit h-full overflow-hidden rounded-[0.5rem] lg:border bg-background shadow relative flex-col items-center justify-center lg:max-w-none lg:grid lg:grid-cols-2 lg:px-0"] $ do
         case res of
           Nothing -> div_ [class_ "absolute inset-0 flex flex-col gap-1 items-center justify-center"] $ do
@@ -116,7 +115,7 @@ productSaveForm folderId releaseId = do
           Just r -> do
             let title = pack $ dcArtists r <> " - " <> dcTitle r
             let label = head (dcLabels r)
-            let categories = map (map C.toLower) (dcStyles r <> dcGenres r)
+            let categories = concatAsPrintable $ dcStyles r <> dcGenres r
             let backNav = tabindex_ "-1" : navChangeAttrs ("/folders/" <> folderId <> "?focusId=" <> releaseId)
             div_ [class_ "relative h-full flex-col bg-muted p-4 lg:p-10 mb-3 lg:mb-0 dark:border-r lg:flex"] $ do
               div_ [class_ "absolute inset-0 bg-zinc-900"] ""
@@ -140,7 +139,15 @@ productSaveForm folderId releaseId = do
                   div_ [class_ "flex flex-col space-y-2 w-24"] $ do
                         cnLabel [for_ "year"] "Year"
                         cnInput [name_ "year", value_ $ pack $ show (dcYear r), type_ "number"]
-                drawCategories categories $ fromMaybe [] catRes
+                div_ [hxTrigger_ "load", hxSwap_ "innerHTML",
+                  hxGet_ "/categories/wp",
+                  hxDisinherit_ "*",
+                  __ $ "on htmx:afterSwap set :cats to " <> categories <> " then repeat for cat in (<button/> in <fieldset/>)\
+                  \ if :cats.includes((@data-value of cat).trim()) then\
+                  \ increment the (innerHTML of first <span/> in cat) then\
+                  \ add @data-state=on to cat then\
+                  \ add @checked=true to the first <input/> in cat end end"] ""
+                  -- " <> categories <>
                 div_ [class_ "flex flex-col space-y-2"] $ do
                   cnLabel [for_ "tracklist"] "Tracklist"
                   drawTracklist (dcVideos r) (dcTracklist r)
@@ -163,9 +170,9 @@ productSaveForm folderId releaseId = do
                         option_ [value_ "draft"] "Draft"
                   div_ [class_ "flex flex-col space-y-2 w-24"] $ do
                       cnLabel [for_ "price"] "Price"
-                      cnInput [name_ "price", value_ "", autofocus_, placeholder_ "0.00"]
+                      cnInput [name_ "price", value_ price, autofocus_, placeholder_ "0.00"]
               p_ [ id_ "error-message", class_ "hidden text-red-600 self-end" ] "You're missing something."
               div_ [class_ "flex w-full"] $ do
                 cnButton (Just ButtonDestructive) (Just ButtonSmall) backNav  "Back"
-                cnBtn [class_ "ml-auto", type_ "submit"] "Save"
+                cnBtn [id_ "submit-button", class_ "ml-auto", type_ "submit"] "Save"
 

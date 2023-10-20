@@ -7,10 +7,9 @@ module Main (main) where
 import           Control.Monad.Trans.Reader (ReaderT (runReaderT))
 import           Data.String                (IsString (fromString))
 import           Data.Text                  (pack)
-import           Database.PostgreSQL.Simple (ConnectInfo (connectDatabase, connectHost, connectPassword, connectUser),
-                                             defaultConnectInfo, withConnect)
 import           Network.Wai.Handler.Warp   (defaultSettings, runSettings,
                                              setHost, setPort)
+import           Routes.Categories          (CategoriesRouter, categoriesRouter)
 import           Routes.Folders             (FoldersRouter, foldersRouter)
 import           Routes.Home                (HomeRouter, homeRouter)
 import           Routes.Products            (ProductsRouter, productsRouter)
@@ -20,9 +19,7 @@ import           Servant                    (Application, Handler,
                                              serveDirectoryFileServer,
                                              type (:<|>) (..), type (:>))
 import           Servant.Server             (hoistServer)
-import           State                      (AppM,
-                                             DbEnv (dbName, dbPass, dbUrl, dbUsername),
-                                             State (State), parseDbEnv,
+import           State                      (AppM, State (State), parseDbEnv,
                                              parseWpEnv)
 import           System.Environment         (lookupEnv)
 
@@ -30,7 +27,7 @@ type API =
   "public" :> Raw
     :<|> HomeRouter
     :<|> ProductsRouter
-    -- :<|> CategoriesRouter
+    :<|> CategoriesRouter
     :<|> FoldersRouter
 
 api :: Proxy API
@@ -47,7 +44,7 @@ server =
   serveDirectoryFileServer "public"
     :<|> homeRouter
     :<|> productsRouter
-    -- :<|> categoriesRouter
+    :<|> categoriesRouter
     :<|> foldersRouter
 
 main :: IO ()

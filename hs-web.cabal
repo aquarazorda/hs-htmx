@@ -48,6 +48,7 @@ library
       Data.Postgres.Track
       Data.WC.Category
       Data.WC.Product
+      Htmx
       Http
       Lucid.Hyperscript
       Router
@@ -56,6 +57,7 @@ library
       Routes.Home
       Routes.Products
       State
+      Utils
   other-modules:
       Paths_hs_web
   autogen-modules:
@@ -68,7 +70,6 @@ library
     , base >=4.7 && <5
     , bytestring
     , cookie
-    , dotenv
     , http-api-data
     , http-client
     , http-conduit
@@ -101,7 +102,6 @@ executable hs-web-exe
     , base >=4.7 && <5
     , bytestring
     , cookie
-    , dotenv
     , hs-web
     , http-api-data
     , http-client
@@ -136,7 +136,6 @@ test-suite hs-web-test
     , base >=4.7 && <5
     , bytestring
     , cookie
-    , dotenv
     , hs-web
     , http-api-data
     , http-client

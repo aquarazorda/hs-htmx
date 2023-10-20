@@ -3,7 +3,7 @@
 
 module Data.Discogs.Folders where
 
-import           Data.Aeson   (FromJSON (parseJSON), withObject, (.:))
+import           Data.Aeson   (FromJSON (parseJSON), withObject, (.:), (.:?))
 import           Data.List    (intercalate)
 import           Data.Text    (Text)
 import           GHC.Generics (Generic)
@@ -21,10 +21,6 @@ data DcFolder = DcFolder {
   dcFolderResourceUrl :: String
 } deriving (Show)
 
-newtype DcFolderRes = DcFolderRes {
-  folders :: [DcFolder]
-} deriving (Generic, Show)
-
 instance FromJSON DcFolder where
   parseJSON = withObject "DcFolder" $ \v ->
     DcFolder
@@ -32,6 +28,10 @@ instance FromJSON DcFolder where
       <*> v .: "name"
       <*> v .: "count"
       <*> v .: "resource_url"
+
+newtype DcFolderRes = DcFolderRes {
+  folders :: [DcFolder]
+} deriving (Generic, Show)
 
 instance FromJSON DcFolderRes
 
@@ -139,7 +139,7 @@ data DcRelease = DcRelease {
   dcReleaseRating           :: Int,
   dcReleaseBasicInformation :: DcBasicInformation,
   dcReleaseFolderId         :: Int,
-  dcNotes                   :: [DcNote]
+  dcNotes                   :: Maybe [DcNote]
 } deriving (Show)
 
 instance FromJSON DcRelease where
@@ -149,7 +149,7 @@ instance FromJSON DcRelease where
       <*> v .: "rating"
       <*> v .: "basic_information"
       <*> v .: "folder_id"
-      <*> v .: "notes"
+      <*> v .:? "notes"
 
 data DcFolderReleaseRes = DcFolderReleaseRes {
   dcFolderReleasePagination :: DcPagination,
