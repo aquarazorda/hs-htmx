@@ -7,7 +7,7 @@ import           Control.Monad.Trans.Reader (ask)
 import           Data.Aeson                 (FromJSON, ToJSON, decode,
                                              eitherDecode)
 import           Data.ByteString.Internal   (ByteString)
-import           Data.Either                (fromLeft, fromRight, isLeft)
+import           Data.Either                (fromRight)
 import           Data.Function              ((&))
 import           Data.String                (IsString)
 import           Data.Text                  (Text, unpack)
@@ -35,8 +35,6 @@ getResponse preToken token path = do
   let req = setRequestHeaders reqHeaders $ parseRequest_ $ unpack path
   res <- liftIO $ httpLbs req manager
   let decoded = eitherDecode (getResponseBody res)
-  liftIO $ do
-    if isLeft decoded then print $ fromLeft "0" decoded else mempty
   pure $ fromRight Nothing decoded
 
 postResponse :: (ToJSON a, FromJSON b)=> Text -> Text -> Text -> a -> AppM (Maybe b)
