@@ -10,4 +10,4 @@ __ = makeAttribute "_"
 
 withAutoFocus :: Attribute
 withAutoFocus = __ "init wait 0.2s then if $focusId get #{$focusId} then if it go to the center of it smoothly then toggle [@data-state=selected] on it for 2s\
-\ then set $focusId to null end end"
+\ end end then set $focusId to null"

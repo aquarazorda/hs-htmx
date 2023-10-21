@@ -3,7 +3,14 @@
 module Utils where
 
 import           Data.Char (isDigit)
-import           Data.Text (Text, intercalate, toLower)
+import           Data.Text (Text, breakOn, drop, intercalate, toLower)
+import           Prelude   hiding (concat, drop)
+
+extractContentInParentheses :: Text -> Text
+extractContentInParentheses input = case breakOn "(" input of
+  (_, rest) ->
+    case breakOn ")" (drop 1 rest) of
+      (inside, _) -> inside
 
 extractFirstNumToDouble :: String -> Double
 extractFirstNumToDouble input = case dropWhile (not . isDigit) input of

@@ -16,6 +16,7 @@ import           Components.Shadcn.Button    (ButtonSize (ButtonDefaultSize),
 import           Components.Shadcn.Table     (tableCell_, tableRow_)
 import           Components.Table.Simple     (TableHeader (TableHeader),
                                               simpleTable)
+import           Control.Monad.IO.Class      (MonadIO (liftIO))
 import           Data.Discogs.Folders        (DcBasicInformation (dcArtists, dcGenres, dcId, dcStyles, dcThumb, dcTitle, dcYear),
                                               DcFolder (dcFolderCount, dcFolderId, dcFolderName),
                                               DcFolderReleaseRes (dcFolderReleasePagination, dcFolderReleases),
@@ -46,11 +47,12 @@ import           Servant                     (Capture, FormUrlEncoded, Get,
 import           Servant.HTML.Lucid          (HTML)
 import           Servant.Htmx                (HXRequest)
 import           State                       (AppM)
-import           Utils                       (extractFirstNumToDouble)
+import           Utils                       (extractContentInParentheses,
+                                              extractFirstNumToDouble)
 
 type FoldersRouter =  "folders" :> PageRoute
   :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" String :> Header "page" Text :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" Text :> QueryParam "condition" Text :> Header "page" Text :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
   :<|> "folders" :> Capture "folderId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "page" Int :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
 
 foldersRouter :: GenericResponse
@@ -69,7 +71,9 @@ releasePost folderId formData mPage cookies hx = do
   (res :: Maybe WpProductResponse) <- postWp "/products" $ generateWpPostData formData
   case res of
     Nothing -> throwError err422
-    Just _  -> folderContent folderId mPage cookies hx
+    Just _  -> do
+      liftIO $ print res
+      folderContent folderId mPage cookies hx
 
 getGenres :: [String] -> [String] -> String
 getGenres genres styles = intercalate ", " (genres ++ styles)
@@ -97,7 +101,8 @@ folderContent :: FolderContent
 folderContent folderId page = do
   let fullpath = concat ["/folders/", pack fId, "?page=", pack (show p)]
   getRoute fullpath $ do
-    (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse (foldersPath <> "/" <> pack fId <> "/releases" <> "?page=" <> pack (show p))
+    (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse
+      $ concat [foldersPath, "/", pack fId, "/releases", "?page=", pack (show p), "&sort=added&sort_order=desc"]
     pure $ do
       case res of
         Nothing -> div_ [class_ "w-full overflow-auto space-y-2"] $ do
@@ -150,8 +155,8 @@ folderContent folderId page = do
           where
             basicInfo = dcReleaseBasicInformation item
             relId = pack $ show (dcId basicInfo)
-            releasePath = "/folders/" <> pack fId <> "/" <> relId <> priceAsQueryString (getItemPrice item)
-            relNav = hxHeaders_ ("{\"focusId\": \"" <> relId <> "\", \"page\": \"" <> pack (show p) <> "\"}" ) : navChangeAttrs releasePath
+            releasePath = concat ["/folders/", pack fId, "/", relId, priceAsQueryString (getItemPrice item), "&condition=", getItemCondition item]
+            relNav = hxHeaders_ ("{\"page\": \"" <> pack (show p) <> "\"}" ) : navChangeAttrs releasePath
 
 getItemPrice :: DcRelease -> Double
 getItemPrice dcRelease = maybe 0.00 (decrement . extractFirstNumToDouble . dcValue) (find (\i -> dcFieldId i == 3) =<< dcNotes dcRelease)
@@ -161,12 +166,16 @@ getItemPrice dcRelease = maybe 0.00 (decrement . extractFirstNumToDouble . dcVal
 priceAsQueryString :: Double -> Text
 priceAsQueryString p = "?price=" <> pack (show p)
 
-type ReleaseContent = Int -> Int -> Maybe String -> Maybe Text -> GenericResponse
+getItemCondition :: DcRelease -> Text
+getItemCondition dcRelease = maybe "VG+" (extractContentInParentheses . pack . dcValue) (find (\i -> dcFieldId i == 1) =<< dcNotes dcRelease)
+
+type ReleaseContent = Int -> Int -> Maybe Text -> Maybe Text -> Maybe Text -> GenericResponse
 
 releaseContent :: ReleaseContent
-releaseContent folderId releaseId mPrice mPage = getRoute
-  ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId) <> "?price=" <> price)
-  $ productSaveForm price page (pack $ show folderId) (pack $ show releaseId)
+releaseContent folderId releaseId mPrice mCondition mPage = getRoute
+    (concat ["/folders/", pack (show folderId), "/", pack (show releaseId), "?price=", price, "&condition=", condition, "&page=", page])
+  $ productSaveForm price page condition (pack $ show folderId) (pack $ show releaseId)
   where
-    price = maybe "0.00" pack mPrice
+    price = fromMaybe "0.00" mPrice
+    condition = fromMaybe "VG+" mCondition
     page = fromMaybe "1" mPage

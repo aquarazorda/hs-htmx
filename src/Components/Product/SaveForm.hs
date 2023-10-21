@@ -18,7 +18,8 @@ import           Data.Discogs.Folders     (DcLabel (dcLabelCatNo, dcLabelName),
 import           Data.Discogs.Release
 import           Data.Foldable            (foldl')
 import           Data.List                (find)
-import           Data.Text                (Text, isInfixOf, pack, toLower)
+import           Data.Text                (Text, intercalate, isInfixOf, pack,
+                                           toLower)
 import           Data.WC.Category         (WpCategory (count, name, wpCatId))
 import           Htmx                     (hxDisinherit_)
 import           Http                     (getDcResponse)
@@ -35,6 +36,9 @@ import           Lucid.Htmx               (hxGet_, hxHeaders_, hxIndicator_,
 import           Lucid.Hyperscript        (__)
 import           State                    (AppM)
 import           Utils                    (concatAsPrintable)
+
+selectedOption_ :: Text -> Text -> Html () -> Html ()
+selectedOption_ selectedVal val = option_ (if val == selectedVal then [value_ val, selected_ ""] else [value_ val])
 
 getVideoLink :: Maybe [DcVideo] -> Text -> Text
 getVideoLink Nothing _ = ""
@@ -97,12 +101,12 @@ drawCategories categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
         where
           name' = pack $ name c
 
-productSaveForm :: Text -> Text -> Text -> Text -> AppM (Html ())
-productSaveForm price page folderId releaseId = do
+productSaveForm :: Text -> Text -> Text -> Text -> Text -> AppM (Html ())
+productSaveForm price page condition folderId releaseId = do
     (res :: Maybe DcRelease) <- getDcResponse $ "/releases/" <> releaseId
     let headers = "{\"page\": \"" <> page <> "\"}"
     pure $ form_ [
-      hxPost_ "",
+      hxPost_ $ "/" <> intercalate "/" ["folders", folderId],
       hxSwap_ "innerHTML scroll:top",
       hxTarget_ "#router-outlet",
       hxDisinherit_ "*",
@@ -161,11 +165,11 @@ productSaveForm price page folderId releaseId = do
                   div_ [class_ "flex flex-col space-y-2 w-32"] $ do
                       cnLabel [for_ "condition"] "Condition"
                       cnSelect [name_ "condition"] $ do
-                        option_ [value_ "M"] "Mint"
-                        option_ [value_ "VG+", selected_ ""] "VG+"
-                        option_ [value_ "VG"] "VG"
-                        option_ [value_ "G+"] "G+"
-                        option_ [value_ "G"] "G"
+                        selectedOption_ condition "M" "Mint"
+                        selectedOption_ condition "VG+" "VG+"
+                        selectedOption_ condition "VG" "VG"
+                        selectedOption_ condition "G+" "G+"
+                        selectedOption_ condition "G" "G"
                   div_ [class_ "flex flex-col space-y-2 w-32"] $ do
                       cnLabel [for_ "status"] "Status"
                       cnSelect [name_ "status", value_ "publish"] $ do

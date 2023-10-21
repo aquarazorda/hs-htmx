@@ -65,7 +65,10 @@ instance ToJSON WpProduct where
     "status" .= status,
     "manage_stock" .= manageStock,
     "stock_quantity" .= stockQuantity,
-    "images" .=  [object [ "src" .= image ]]
+    "meta_data" .= [object [
+      "key" .= ("fifu_image_url" :: Text),
+      "value" .= image
+    ]]
     ]
 
 newtype WpProductResponse = WpProductResponse {
