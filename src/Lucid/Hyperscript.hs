@@ -8,6 +8,6 @@ import           Lucid.Base (Attribute, makeAttribute)
 __ :: Text -> Attribute
 __ = makeAttribute "_"
 
-withAutoFocus :: Bool -> Attribute
-withAutoFocus True  = __ "init wait 0.2s then go to the center of me smoothly then toggle [@data-state=selected] on me for 2s"
-withAutoFocus False = makeAttribute "" ""
+withAutoFocus :: Attribute
+withAutoFocus = __ "init wait 0.2s then if $focusId get #{$focusId} then if it go to the center of it smoothly then toggle [@data-state=selected] on it for 2s\
+\ then set $focusId to null end end"

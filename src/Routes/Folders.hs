@@ -34,6 +34,7 @@ import           Http                        (getDcResponse, postWp)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
                                               div_, id_, img_, loading_, span_,
                                               src_)
+import           Lucid.Htmx                  (hxHeaders_)
 import           Lucid.Hyperscript           (withAutoFocus)
 import           Prelude                     hiding (concat, putStrLn)
 import           Router                      (GenericResponse, PageResponse,
@@ -48,9 +49,9 @@ import           State                       (AppM)
 import           Utils                       (extractFirstNumToDouble)
 
 type FoldersRouter =  "folders" :> PageRoute
-  :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> QueryParam "focusId" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" String :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" String :> Header "page" Text :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  :<|> "folders" :> Capture "folderId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "page" Int :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
 
 foldersRouter :: GenericResponse
   :<|> FolderContent
@@ -61,14 +62,14 @@ foldersRouter = getRoute "/folders" foldersContent
   :<|> releaseContent
   :<|> releasePost
 
-type ReleasePost = Int -> Int -> DcReleaseForm -> GenericResponse
+type ReleasePost = Int -> DcReleaseForm -> Maybe Int -> GenericResponse
 
 releasePost :: ReleasePost
-releasePost folderId releaseId formData cookies hx = do
+releasePost folderId formData mPage cookies hx = do
   (res :: Maybe WpProductResponse) <- postWp "/products" $ generateWpPostData formData
   case res of
     Nothing -> throwError err422
-    Just _  -> folderContent folderId (Just 1) (Just releaseId) cookies hx
+    Just _  -> folderContent folderId mPage cookies hx
 
 getGenres :: [String] -> [String] -> String
 getGenres genres styles = intercalate ", " (genres ++ styles)
@@ -90,15 +91,11 @@ foldersContent = do
               )
             tableHeaders = [TableHeader "Name" "", TableHeader "Count" ""]
 
-type FolderContent = Int -> Maybe Int -> Maybe Int -> GenericResponse
+type FolderContent = Int -> Maybe Int -> GenericResponse
 
 folderContent :: FolderContent
-folderContent folderId page focusId = do
-  let p = fromMaybe 1 page
-  let focusParam = case focusId of
-        Just focusId' -> "&focusId=" <> pack (show focusId')
-        Nothing       -> ""
-  let fullpath = concat ["/folders/", pack fId, "?page=", pack (show p), focusParam]
+folderContent folderId page = do
+  let fullpath = concat ["/folders/", pack fId, "?page=", pack (show p)]
   getRoute fullpath $ do
     (res :: (Maybe DcFolderReleaseRes)) <- getDcResponse (foldersPath <> "/" <> pack fId <> "/releases" <> "?page=" <> pack (show p))
     pure $ do
@@ -109,7 +106,7 @@ folderContent folderId page focusId = do
         Just f -> do
           let pagination = dcFolderReleasePagination f
           contentHeader ("Folder " <> toHtml fId) $ Just (cnButton (Just ButtonLink) (Just ButtonDefaultSize) (navChangeAttrs "/folders") "Back to folders")
-          div_ [class_ "w-full overflow-auto space-y-4"] $ do
+          div_ [class_ "w-full overflow-auto space-y-4", withAutoFocus] $ do
             simpleTable tableHeaders $ do
               foldl' (<>) "" (fmap drawItem (dcFolderReleases f))
             div_ [class_ "flex justify-end px-2"] $ do
@@ -138,20 +135,23 @@ folderContent folderId page focusId = do
                     span_ [class_ "sr-only"] "Go to last page"
                     doubleArrowRight [class_ "h-4 w-4"]
     where
+      p = fromMaybe 1 page
       fId = show folderId
       tableHeaders = [TableHeader "" "", TableHeader "Title" "", TableHeader "Genres" "", TableHeader "Year" "", TableHeader "Actions" ""]
       drawItem :: DcRelease -> Html ()
       drawItem item = do
-          tableRow_ ([class_ "cursor-pointer", id_ $ pack $ show (dcId basicInfo), withAutoFocus (dcId basicInfo == fromMaybe 0 focusId) ] <> navChangeAttrs releasePath) $ do
+          tableRow_ ([class_ "cursor-pointer", id_ relId ] <> relNav) $ do
             tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20", loading_ "lazy"]
             tableCell_ [class_ "max-w-md truncate"] $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
             tableCell_ [class_ "max-w-md truncate"] $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
             tableCell_ $ toHtml (show $ dcYear basicInfo)
             tableCell_ $ div_ [] $ do
-              cnBtn (navChangeAttrs releasePath) "Add"
+              cnBtn relNav "Add"
           where
             basicInfo = dcReleaseBasicInformation item
-            releasePath = "/folders/" <> pack fId <> "/" <> pack (show $ dcId basicInfo) <> priceAsQueryString (getItemPrice item)
+            relId = pack $ show (dcId basicInfo)
+            releasePath = "/folders/" <> pack fId <> "/" <> relId <> priceAsQueryString (getItemPrice item)
+            relNav = hxHeaders_ ("{\"focusId\": \"" <> relId <> "\", \"page\": \"" <> pack (show p) <> "\"}" ) : navChangeAttrs releasePath
 
 getItemPrice :: DcRelease -> Double
 getItemPrice dcRelease = maybe 0.00 (decrement . extractFirstNumToDouble . dcValue) (find (\i -> dcFieldId i == 3) =<< dcNotes dcRelease)
@@ -161,11 +161,12 @@ getItemPrice dcRelease = maybe 0.00 (decrement . extractFirstNumToDouble . dcVal
 priceAsQueryString :: Double -> Text
 priceAsQueryString p = "?price=" <> pack (show p)
 
-type ReleaseContent = Int -> Int -> Maybe String -> GenericResponse
+type ReleaseContent = Int -> Int -> Maybe String -> Maybe Text -> GenericResponse
 
 releaseContent :: ReleaseContent
-releaseContent folderId releaseId mPrice = getRoute
+releaseContent folderId releaseId mPrice mPage = getRoute
   ("/folders/" <> pack (show folderId) <> "/" <> pack (show releaseId) <> "?price=" <> price)
-  $ productSaveForm price (pack $ show folderId) (pack $ show releaseId)
+  $ productSaveForm price page (pack $ show folderId) (pack $ show releaseId)
   where
     price = maybe "0.00" pack mPrice
+    page = fromMaybe "1" mPage

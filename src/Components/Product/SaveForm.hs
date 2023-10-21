@@ -29,8 +29,9 @@ import           Lucid                    (Html, ToHtml (toHtml), autofocus_,
                                            selected_, span_, src_, tabindex_,
                                            type_, value_)
 import           Lucid.Base               (makeAttribute)
-import           Lucid.Htmx               (hxGet_, hxIndicator_, hxPost_,
-                                           hxSwap_, hxTarget_, hxTrigger_)
+import           Lucid.Htmx               (hxGet_, hxHeaders_, hxIndicator_,
+                                           hxPost_, hxSwap_, hxTarget_,
+                                           hxTrigger_)
 import           Lucid.Hyperscript        (__)
 import           State                    (AppM)
 import           Utils                    (concatAsPrintable)
@@ -96,33 +97,35 @@ drawCategories categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
         where
           name' = pack $ name c
 
-productSaveForm :: Text -> Text -> Text -> AppM (Html ())
-productSaveForm price folderId releaseId = do
+productSaveForm :: Text -> Text -> Text -> Text -> AppM (Html ())
+productSaveForm price page folderId releaseId = do
     (res :: Maybe DcRelease) <- getDcResponse $ "/releases/" <> releaseId
+    let headers = "{\"page\": \"" <> page <> "\"}"
     pure $ form_ [
       hxPost_ "",
       hxSwap_ "innerHTML scroll:top",
       hxTarget_ "#router-outlet",
       hxDisinherit_ "*",
       hxIndicator_ "#body",
-      __ "on htmx:responseError remove .hidden from #error-message then remove @disabled from #submit-button\
-      \ on htmx:beforeRequest add @disabled to #submit-button",
+      hxHeaders_ headers,
+      __ $ "init set $focusId to " <> releaseId <> " then on htmx:responseError remove .hidden from #error-message then remove @disabled from #submit-button\
+      \ then on htmx:beforeRequest add @disabled to #submit-button",
       class_ "lg:container min-h-fit h-full overflow-hidden rounded-[0.5rem] lg:border bg-background shadow relative flex-col items-center justify-center lg:max-w-none lg:grid lg:grid-cols-2 lg:px-0"] $ do
+        let backNav = [tabindex_ "-1", hxHeaders_ headers ] <> navChangeAttrs ("/folders/" <> folderId <> "?page=" <> page)
         case res of
           Nothing -> div_ [class_ "absolute inset-0 flex flex-col gap-1 items-center justify-center"] $ do
             "There was a problem"
-            cnBtn (navChangeAttrs $ "/folders/" <> folderId <> "?focusId=" <> releaseId)  "Back"
+            cnBtn backNav  "Back"
           Just r -> do
             let title = pack $ dcArtists r <> " - " <> dcTitle r
             let label = head (dcLabels r)
             let categories = concatAsPrintable $ dcStyles r <> dcGenres r
-            let backNav = tabindex_ "-1" : navChangeAttrs ("/folders/" <> folderId <> "?focusId=" <> releaseId)
             div_ [class_ "relative h-full flex-col bg-muted p-4 lg:p-10 mb-3 lg:mb-0 dark:border-r lg:flex"] $ do
               div_ [class_ "absolute inset-0 bg-zinc-900"] ""
               div_ [class_ "relative z-20"] $ do
                 blockquote_ [class_ "space-y-2"] $ do
                   p_ [class_ "lg:text-lg text-white"] "Please choose an image, add price and stock in order to save."
-                  cnButton (Just ButtonLink) (Just ButtonSmall) (class_ "px-0 text-white" : backNav) "Go back."
+                  cnButton (Just ButtonLink) (Just ButtonSmall) ([class_ "px-0 text-white"] <> backNav) "Go back."
               drawImages (dcImages r)
             div_ [class_ "flex flex-col h-full p-4 justify-between gap-4"] $ do
               div_ [class_ "flex w-full flex-col justify-center space-y-6"] $ do
