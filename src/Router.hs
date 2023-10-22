@@ -41,7 +41,7 @@ routePage cookies path content = do
     class_ $ "font-sans antialiased" <> if isDarkMode then " dark" else "", id_ "body"] $ do
       div_ [class_ "flex flex-col lg:flex-row h-full w-full"] $ do
         navBar path
-        spinner "router-loader" "htmx-request:flex hidden"
+        spinner "router-loader" "h-screen htmx-request:flex hidden"
         main_ [class_ "flex-1 lg:flex-grow p-6 htmx-request:hidden", id_ "router-outlet"] content
   where
     isDarkMode = foldl' (\acc (name, value) -> acc || (name == "darkMode" && value == "true")) False cookies

@@ -39,6 +39,8 @@ dependencies:
 - product-profunctors
 - http-api-data
 - cookie
+- mysql-haskell
+- utf8-string >= 1.0.2
 
 ghc-options:
 - -Wall
