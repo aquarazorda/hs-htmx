@@ -4,9 +4,13 @@
 
 module Main (main) where
 
+import           Control.Exception          (bracket, finally)
 import           Control.Monad.Trans.Reader (ReaderT (runReaderT))
 import           Data.String                (IsString (fromString))
 import           Data.Text                  (pack)
+import           Database.MySQL.Base        (ConnectInfo (ciPort), ciDatabase,
+                                             ciHost, ciPassword, ciUser, close,
+                                             connect, defaultConnectInfo)
 import           Network.Wai.Handler.Warp   (defaultSettings, runSettings,
                                              setHost, setPort)
 import           Routes.Categories          (CategoriesRouter, categoriesRouter)
@@ -19,7 +23,9 @@ import           Servant                    (Application, Handler,
                                              serveDirectoryFileServer,
                                              type (:<|>) (..), type (:>))
 import           Servant.Server             (hoistServer)
-import           State                      (AppM, State (State), parseDbEnv,
+import           State                      (AppM,
+                                             DbEnv (dbName, dbPass, dbUrl, dbUsername),
+                                             State (State), parseWpDbEnv,
                                              parseWpEnv)
 import           System.Environment         (lookupEnv)
 
@@ -50,20 +56,27 @@ server =
 main :: IO ()
 main = do
   wpEnv <- parseWpEnv
-  dbEnv <- parseDbEnv
+  dbEnv <- parseWpDbEnv
   mHostIp <- lookupEnv "HOST_IP"
   mDcToken <- lookupEnv "DC_TOKEN"
   mPort <- lookupEnv "PORT"
   case (wpEnv, dbEnv, mHostIp, mDcToken, mPort) of
     (Just wp, Just db, Just hostIp, Just dcToken, Just port) -> do
-      -- let connectionInfo = defaultConnectInfo {
-      --   connectHost = dbUrl db,
-      --   connectDatabase = dbName db,
-      --   connectUser = dbUsername db,
-      --   connectPassword = dbPass db
-      -- }
+      let connInfo = defaultConnectInfo
+            { ciUser = dbUsername db
+            , ciPassword = dbPass db
+            , ciHost = dbUrl db
+            , ciDatabase = dbName db
+            , ciPort = 3306
+            }
       let servantSettings = setPort (read port) $ setHost (fromString hostIp) defaultSettings
-      -- withConnect connectionInfo $ \dbconn -> do
       putStrLn $ "Running on http://" <> hostIp <> ":" <> port
       runSettings servantSettings $ app (State wp (pack dcToken))
+      -- bracket (connect connInfo) -- Acquire the connection
+      --         close  -- Release the connection
+      --         (\conn -> do
+      --           let servantSettings = setPort (read port) $ setHost (fromString hostIp) defaultSettings
+      --           putStrLn $ "Running on http://" <> hostIp <> ":" <> port
+      --           runSettings servantSettings $ app (State wp conn (pack dcToken))
+      --         ) `finally` putStrLn "Shutting down..."
     _ -> putStrLn "Failed to parse .env file."

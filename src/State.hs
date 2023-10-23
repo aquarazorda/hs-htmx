@@ -2,9 +2,10 @@ module State where
 
 import           Control.Monad.Trans.Reader (ReaderT)
 import           Data.ByteString            (ByteString)
+import           Data.ByteString.UTF8       (fromString)
 import           Data.Text                  (Text, pack)
 import           Data.Text.Encoding         (encodeUtf8)
-import           Database.PostgreSQL.Simple (Connection)
+import           Database.MySQL.Base        (MySQLConn)
 import           Servant                    (Handler)
 import           System.Environment         (lookupEnv)
 
@@ -17,14 +18,14 @@ data WpEnv = WpEnv {
 
 data DbEnv = DbEnv {
   dbUrl      :: String,
-  dbUsername :: String,
-  dbPass     :: String,
-  dbName     :: String
+  dbUsername :: ByteString,
+  dbPass     :: ByteString,
+  dbName     :: ByteString
 } deriving (Show)
 
 data State = State
   { wp      :: WpEnv
-  -- , db      :: Connection
+  -- , db      :: MySQLConn
   , dcToken :: Text
   }
 
@@ -39,13 +40,24 @@ parseWpEnv = do
     (Just url, Just token) -> pure $ Just $ WpEnv (pack url) (pack token)
     _                      -> pure Nothing
 
-parseDbEnv :: IO (Maybe DbEnv)
-parseDbEnv = do
-    mUrl <- lookupEnv "DB_URL"
-    mUsername <- lookupEnv "DB_USERNAME"
-    mPass <- lookupEnv "DB_PASSWORD"
-    mName <- lookupEnv "DB_NAME"
+-- parseDbEnv :: IO (Maybe DbEnv)
+-- parseDbEnv = do
+--     mUrl <- lookupEnv "DB_URL"
+--     mUsername <- lookupEnv "DB_USERNAME"
+--     mPass <- lookupEnv "DB_PASSWORD"
+--     mName <- lookupEnv "DB_NAME"
+--     case (mUrl, mUsername, mPass, mName) of
+--         (Just url, Just username, Just pass, Just name) ->
+--             pure $ Just $ DbEnv url username pass name
+--         _ -> pure Nothing
+
+parseWpDbEnv :: IO (Maybe DbEnv)
+parseWpDbEnv = do
+    mUrl <- lookupEnv "WPDB_HOST"
+    mUsername <- lookupEnv "WPDB_USER"
+    mPass <- lookupEnv "WPDB_PASS"
+    mName <- lookupEnv "WPDB_NAME"
     case (mUrl, mUsername, mPass, mName) of
         (Just url, Just username, Just pass, Just name) ->
-            pure $ Just $ DbEnv url username pass name
+            pure $ Just $ DbEnv url (fromString username) (fromString pass) (fromString name)
         _ -> pure Nothing
