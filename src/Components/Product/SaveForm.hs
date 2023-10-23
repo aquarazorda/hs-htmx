@@ -166,6 +166,7 @@ productSaveForm price page condition folderId releaseId = do
                       cnLabel [for_ "condition"] "Condition"
                       cnSelect [name_ "condition"] $ do
                         selectedOption_ condition "M" "Mint"
+                        selectedOption_ condition "NM" "Near Mint"
                         selectedOption_ condition "VG+" "VG+"
                         selectedOption_ condition "VG" "VG"
                         selectedOption_ condition "G+" "G+"

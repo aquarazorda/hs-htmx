@@ -7,7 +7,7 @@ import           Data.Aeson           (FromJSON (parseJSON), withObject, (.!=),
 import           Data.Discogs.Folders (DcLabel, DcTrack, DcVideo)
 import           Data.Foldable        (foldl')
 import           Data.List            (zip4)
-import           Data.Text            (Text, pack)
+import           Data.Text            (Text, isPrefixOf, pack)
 import           Data.Text.Lazy       (toStrict)
 import           Data.WC.Product      (WpProduct (WpProduct))
 import           Lucid                (Html, ToHtml (toHtml), a_, class_, href_,
@@ -95,8 +95,13 @@ instance FromForm DcReleaseForm where
 generateDescription :: DcReleaseForm -> Text
 generateDescription f = "ლეიბლი - " <> dcFormLabel f <> " / " <> dcFormCatNo f <> "\nწელი - " <> (pack . show) (dcFormYear f) <> "\n"
     <> toStrict (renderText content)
-    <> "\nმდგომარეობა <strong><span style=\"color: #339966;\">კარგი (" <> dcFormCondition f <> ")</span></strong>"
+    <> "\nმდგომარეობა <strong><span style=\"color: #339966;\">" <> getCustomText (dcFormCondition f) <> "(" <> dcFormCondition f <> ")</span></strong>"
   where
+    getCustomText :: Text -> Text
+    getCustomText inputText
+      | "M" `isPrefixOf` inputText = "ახალი"
+      | "NM" `isPrefixOf` inputText = "ახალივით"
+      | otherwise = "კარგი"
     tracklist = trackItem <$> zip4 (dcFormTrackPosition f) (dcFormTrackTitle f) (dcFormTrackDuration f) (dcFormTrackLink f)
     trackItem :: (Text, Text, Text, Text) -> Html ()
     trackItem (pos, tname, tdur, thref) = tr_ [class_ "tracklist_track track"] $ do
