@@ -65,9 +65,8 @@ instance ToJSON WpProduct where
     "status" .= status,
     "manage_stock" .= manageStock,
     "stock_quantity" .= stockQuantity,
-    "meta_data" .= [object [
-      "key" .= ("fifu_image_url" :: Text),
-      "value" .= image
+    "images" .= [object [
+      "src" .= image
     ]]
     ]
 
