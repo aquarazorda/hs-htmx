@@ -18,7 +18,7 @@ import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
                                             span_, td_, tr_)
 import           Lucid.Htmx                (hxGet_)
 import           Prelude                   hiding (id)
-import           Router                    (PageResponse, getRoute)
+import           Router.Helpers                    (PageResponse, getRoute)
 import           Servant                   (Get, Header, (:-), (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)

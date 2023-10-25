@@ -98,3 +98,7 @@ arrowLeft = svg [viewBox_ "0 0 24 24"] $ do
 arrowRight :: Icon
 arrowRight = svg [viewBox_ "0 0 24 24"] $ do
   path_ [currentColor, d_ "M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6l-1.41-1.41z"]
+
+plusIcon :: Icon
+plusIcon = svg [viewBox_ "0 0 24 24"] $ do
+  path_ [currentColor, d_ "M7 20V8.975q0-.825.6-1.4T9.025 7H20q.825 0 1.413.587T22 9v8l-5 5H9q-.825 0-1.413-.588T7 20ZM2.025 6.25q-.15-.825.325-1.488t1.3-.812L14.5 2.025q.825-.15 1.488.325t.812 1.3L17.05 5H15l-.175-1L4 5.925l1 5.65v6.975q-.4-.225-.687-.6t-.363-.85L2.025 6.25ZM9 9v11h7l4-4V9H9Zm5.5 5.5Zm-1 4h2v-3h3v-2h-3v-3h-2v3h-3v2h3v3Z"]

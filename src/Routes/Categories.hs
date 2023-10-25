@@ -7,17 +7,23 @@
 
 module Routes.Categories (CategoriesApi, categoriesApi) where
 
-import           Components.Product.SaveForm (drawCategories)
-import           Data.Text                   (Text)
-import           Data.WC.Category            (WpCategory)
-import           GHC.Generics                (Generic)
-import           Http                        (getWpResponse)
-import           Lucid                       (Html, ToHtml (toHtml))
-import           Servant                     (Get, Header, Headers, addHeader,
-                                              (:-), (:>))
-import           Servant.HTML.Lucid          (HTML)
-import           Servant.Server.Generic      (AsServerT)
-import           State                       (AppM)
+import           Components.Shadcn.Label  (cnLabel)
+import           Components.Shadcn.Toggle (ToggleSize (DefaultSize),
+                                           ToggleVariant (Outline), cnToggle)
+import           Data.List                (foldl')
+import           Data.Text                (Text, pack, toLower)
+import           Data.WC.Category         (WpCategory (count, name, wpCatId))
+import           GHC.Generics             (Generic)
+import           Http                     (getWpResponse)
+import           Lucid                    (Html, ToHtml (toHtml), class_, div_,
+                                           fieldset_, for_, id_, p_, span_)
+import           Lucid.Base               (makeAttribute)
+import           Lucid.Hyperscript        (__)
+import           Servant                  (Get, Header, Headers, addHeader,
+                                           (:-), (:>))
+import           Servant.HTML.Lucid       (HTML)
+import           Servant.Server.Generic   (AsServerT)
+import           State                    (AppM)
 
 -- type HXReswap = Header "HX-Reswap" Text
 
@@ -44,6 +50,25 @@ getCategories = do
   pure $ case catRes of
     Just cats -> addHeader "max-age=180" $ drawCategories cats
     Nothing   -> addHeader "max-age=0" $ toHtml ("Error loading categories" :: Text)
+
+drawCategories :: [WpCategory] -> Html ()
+drawCategories categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
+  cnLabel [for_ "release-title"] "Category"
+  fieldset_ [class_ "flex gap-1 flex-wrap h-56 overflow-y-auto scrollbar-hide border p-2 rounded-md"] $ do
+    foldl' (<>) "" $ fmap catItem categories
+  where
+    catItem :: WpCategory -> Html ()
+    catItem c = cnToggle Outline DefaultSize (pack $ show $ wpCatId c) "category"
+      [id_ "category-button", class_ "flex-1 whitespace-nowrap"
+        , __ "get the (innerHTML of first <span/> in me) as an Int if my @data-state is on decrement it else increment it end put it into <span/> in me"
+        , makeAttribute "data-value" $ toLower name'
+      ]
+      $ do
+        div_ [class_ "flex gap-2"] $ do
+          p_ $ toHtml (name c)
+          span_ $ toHtml (show $ count c)
+        where
+          name' = pack $ name c
 
 -- formId :: Text
 -- formId = "add_category_form"

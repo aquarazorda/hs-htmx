@@ -3,13 +3,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Routes.Home (homeApi, HomeApi) where
+module Routes.Home (homeApi, HomeApi, getHome) where
 
 import           Components.Content.Header (contentHeader)
 import           Data.Text                 (Text)
 import           GHC.Generics              (Generic)
 import           Lucid                     (Html)
-import           Router                    (PageResponse, getRoute)
+import           Router.Helpers                    (PageResponse, getRoute)
 import           Servant                   (Get, Header, (:-), (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)

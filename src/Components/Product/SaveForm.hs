@@ -3,7 +3,6 @@
 
 module Components.Product.SaveForm where
 
-import           Components.Navbar        (navChangeAttrs)
 import           Components.Shadcn.Button (ButtonSize (ButtonSmall),
                                            ButtonVariant (ButtonDestructive, ButtonLink, ButtonSecondary),
                                            cnBtn, cnButton)
@@ -22,7 +21,7 @@ import           Data.List                (find)
 import           Data.Text                (Text, intercalate, isInfixOf, pack,
                                            toLower)
 import           Data.WC.Category         (WpCategory (count, name, wpCatId))
-import           Htmx                     (hxDisinherit_)
+import           Htmx                     (hxDisinherit_, navChangeAttrs)
 import           Http                     (getDcResponse)
 import           Lucid                    (Html, ToHtml (toHtml), blockquote_,
                                            class_, div_, fieldset_, for_, form_,
@@ -81,25 +80,6 @@ drawImages images = div_ [
             src_ $ pack $ dcImageUri image,
             loading_ "lazy"
             ]
-
-drawCategories :: [Data.WC.Category.WpCategory] -> Html ()
-drawCategories categories = div_ [class_ "flex flex-col flex-1 space-y-2"] $ do
-  cnLabel [for_ "release-title"] "Category"
-  fieldset_ [class_ "flex gap-1 flex-wrap h-56 overflow-y-auto scrollbar-hide border p-2 rounded-md"] $ do
-    foldl' (<>) "" $ fmap catItem categories
-  where
-    catItem :: Data.WC.Category.WpCategory -> Html ()
-    catItem c = cnToggle Outline DefaultSize (pack $ show $ wpCatId c) "category"
-      [id_ "category-button", class_ "flex-1 whitespace-nowrap"
-        , __ "get the (innerHTML of first <span/> in me) as an Int if my @data-state is on decrement it else increment it end put it into <span/> in me"
-        , makeAttribute "data-value" $ toLower name'
-      ]
-      $ do
-        div_ [class_ "flex gap-2"] $ do
-          p_ $ toHtml (name c)
-          span_ $ toHtml (show $ count c)
-        where
-          name' = pack $ name c
 
 productSaveForm :: Text -> Text -> Text -> Text -> Text -> AppM (Html ())
 productSaveForm price page condition folderId releaseId = do

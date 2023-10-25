@@ -9,7 +9,6 @@ module Routes.Folders where
 import           Components.Content.Header   (contentHeader)
 import           Components.Icons            (arrowLeft, arrowRight,
                                               doubleArrowLeft, doubleArrowRight)
-import           Components.Navbar           (navChangeAttrs)
 import           Components.Product.SaveForm (productSaveForm)
 import           Components.Shadcn.Button    (ButtonSize (ButtonDefaultSize),
                                               ButtonVariant (ButtonDestructive, ButtonLink, ButtonOutline),
@@ -33,6 +32,7 @@ import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text, concat, pack)
 import           Data.WC.Product             (WpProductResponse)
 import           GHC.Generics                (Generic)
+import           Htmx                        (navChangeAttrs)
 import           Http                        (getDcResponse, postWp)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
                                               div_, id_, img_, loading_, span_,
@@ -40,7 +40,7 @@ import           Lucid                       (Html, ToHtml (toHtml), class_,
 import           Lucid.Htmx                  (hxHeaders_)
 import           Lucid.Hyperscript           (withAutoFocus)
 import           Prelude                     hiding (concat, putStrLn)
-import           Router                      (GenericResponse, PageResponse,
+import           Router.Helpers              (GenericResponse, PageResponse,
                                               PageRoute, getRoute)
 import           Servant                     (Capture, FormUrlEncoded, Get,
                                               Header, Post, QueryParam, ReqBody,

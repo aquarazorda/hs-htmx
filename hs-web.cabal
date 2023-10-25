@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -26,6 +26,7 @@ library
   exposed-modules:
       Components.Content.Header
       Components.Icons
+      Components.MainWrapper
       Components.Navbar
       Components.Product.Item
       Components.Product.SaveForm
@@ -42,6 +43,7 @@ library
       Components.Table.Simple
       Data.Discogs.Folders
       Data.Discogs.Release
+      Data.Nav
       Data.Postgres.Category
       Data.Postgres.Label
       Data.Postgres.Product
@@ -52,6 +54,8 @@ library
       Http
       Lucid.Hyperscript
       Router
+      Router.Helpers
+      Routes.AddProduct
       Routes.Categories
       Routes.Folders
       Routes.Home
