@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
@@ -11,47 +12,51 @@ import           Data.Text                  (pack)
 import           Database.MySQL.Base        (ConnectInfo (ciPort), ciDatabase,
                                              ciHost, ciPassword, ciUser, close,
                                              connect, defaultConnectInfo)
+import           GHC.Generics               (Generic)
 import           Network.Wai.Handler.Warp   (defaultSettings, runSettings,
                                              setHost, setPort)
-import           Routes.Categories          (CategoriesRouter, categoriesRouter)
-import           Routes.Folders             (FoldersRouter, foldersRouter)
-import           Routes.Home                (HomeRouter, homeRouter)
-import           Routes.Products            (ProductsRouter, productsRouter)
+import           Routes.Categories          (CategoriesApi, categoriesApi)
+import           Routes.Folders             (FoldersApi, foldersApi)
+import           Routes.Home                (HomeApi, homeApi)
+import           Routes.Products            (ProductsApi, productsApi)
 import           Servant                    (Application, Handler,
-                                             HasServer (ServerT), Proxy (..),
-                                             Raw, serve,
-                                             serveDirectoryFileServer,
-                                             type (:<|>) (..), type (:>))
+                                             HasServer (ServerT), NamedRoutes,
+                                             Proxy (..), Raw, ToServantApi,
+                                             serve, serveDirectoryFileServer,
+                                             type (:-), type (:<|>) (..),
+                                             type (:>))
 import           Servant.Server             (hoistServer)
+import           Servant.Server.Generic     (AsServer, AsServerT, genericServeT)
 import           State                      (AppM,
                                              DbEnv (dbName, dbPass, dbUrl, dbUsername),
                                              State (State), parseWpDbEnv,
                                              parseWpEnv)
 import           System.Environment         (lookupEnv)
 
-type API =
-  "public" :> Raw
-    :<|> HomeRouter
-    :<|> ProductsRouter
-    :<|> CategoriesRouter
-    :<|> FoldersRouter
+type API = ToServantApi RootApi
 
-api :: Proxy API
-api = Proxy
+data RootApi mode = RootApi
+  { public     :: mode :- "public" :> Raw
+  , home       :: mode :- NamedRoutes HomeApi
+  , products   :: mode :- NamedRoutes ProductsApi
+  , folders    :: mode :- NamedRoutes FoldersApi
+  , categories :: mode :- NamedRoutes CategoriesApi
+  } deriving (Generic)
+
+apiRoutes :: RootApi (AsServerT AppM)
+apiRoutes = RootApi
+  { public = serveDirectoryFileServer "public"
+  , home = homeApi
+  , products = productsApi
+  , folders = foldersApi
+  , categories = categoriesApi
+  }
 
 nt :: State -> AppM a -> Handler a
 nt s x = runReaderT x s
 
 app :: State -> Application
-app s = serve api $ hoistServer api (nt s) server
-
-server :: ServerT API AppM
-server =
-  serveDirectoryFileServer "public"
-    :<|> homeRouter
-    :<|> productsRouter
-    :<|> categoriesRouter
-    :<|> foldersRouter
+app s = genericServeT (nt s) apiRoutes
 
 main :: IO ()
 main = do

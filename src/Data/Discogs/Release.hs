@@ -95,7 +95,7 @@ instance FromForm DcReleaseForm where
 generateDescription :: DcReleaseForm -> Text
 generateDescription f = "ლეიბლი - " <> dcFormLabel f <> " / " <> dcFormCatNo f <> "\nწელი - " <> (pack . show) (dcFormYear f) <> "\n"
     <> toStrict (renderText content)
-    <> "\nმდგომარეობა <strong><span style=\"color: #339966;\">" <> getCustomText (dcFormCondition f) <> "(" <> dcFormCondition f <> ")</span></strong>"
+    <> "\nმდგომარეობა <strong><span style=\"color: #339966;\">" <> getCustomText (dcFormCondition f) <> " (" <> dcFormCondition f <> ")</span></strong>"
   where
     getCustomText :: Text -> Text
     getCustomText inputText

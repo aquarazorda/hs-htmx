@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -31,6 +32,7 @@ import           Data.List                   (find, intercalate)
 import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text, concat, pack)
 import           Data.WC.Product             (WpProductResponse)
+import           GHC.Generics                (Generic)
 import           Http                        (getDcResponse, postWp)
 import           Lucid                       (Html, ToHtml (toHtml), class_,
                                               div_, id_, img_, loading_, span_,
@@ -42,27 +44,28 @@ import           Router                      (GenericResponse, PageResponse,
                                               PageRoute, getRoute)
 import           Servant                     (Capture, FormUrlEncoded, Get,
                                               Header, Post, QueryParam, ReqBody,
-                                              err422, throwError, (:<|>) (..),
-                                              (:>))
+                                              err422, throwError, (:-), (:>))
 import           Servant.HTML.Lucid          (HTML)
 import           Servant.Htmx                (HXRequest)
+import           Servant.Server.Generic      (AsServerT)
 import           State                       (AppM)
 import           Utils                       (extractContentInParentheses,
                                               extractFirstNumToDouble)
 
-type FoldersRouter =  "folders" :> PageRoute
-  :<|> "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" Text :> QueryParam "condition" Text :> Header "page" Text :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
-  :<|> "folders" :> Capture "folderId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "page" Int :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
+data FoldersApi mode = FoldersApi
+  { getFolders :: mode :- "folders" :> PageRoute
+  , getFolder :: mode :- "folders" :> Capture "folderId" Int :> QueryParam "page" Int :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  , getFolderRelease :: mode :- "folders" :> Capture "folderId" Int :> Capture "releaseId" Int :> QueryParam "price" Text :> QueryParam "condition" Text :> Header "page" Text :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  , postFolderRelease :: mode :- "folders" :> Capture "folderId" Int :> ReqBody '[FormUrlEncoded] DcReleaseForm :> Header "page" Int :> Header "Cookie" Text :> HXRequest :> Post '[HTML] PageResponse
+  } deriving (Generic)
 
-foldersRouter :: GenericResponse
-  :<|> FolderContent
-  :<|> ReleaseContent
-  :<|> ReleasePost
-foldersRouter = getRoute "/folders" foldersContent
-  :<|> folderContent
-  :<|> releaseContent
-  :<|> releasePost
+foldersApi :: FoldersApi (AsServerT AppM)
+foldersApi = FoldersApi
+  { getFolders = getRoute "/folders" foldersContent
+  , getFolder = folderContent
+  , getFolderRelease = releaseContent
+  , postFolderRelease = releasePost
+  }
 
 type ReleasePost = Int -> DcReleaseForm -> Maybe Int -> GenericResponse
 

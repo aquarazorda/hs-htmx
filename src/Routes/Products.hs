@@ -1,8 +1,9 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module Routes.Products (productsRouter, ProductsRouter) where
+module Routes.Products (productsApi, ProductsApi) where
 
 import           Components.Content.Header (contentHeader)
 import           Components.Shadcn.Button  (cnBtn)
@@ -11,20 +12,27 @@ import           Components.Table.Simple   (TableHeader (TableHeader),
 import           Data.Text                 (Text, pack)
 import qualified Data.WC.Category          as Cat
 import           Data.WC.Product           (WpPost (..), categories, name)
+import           GHC.Generics              (Generic)
 import           Http                      (getWpResponse)
 import           Lucid                     (Html, ToHtml (toHtml), class_, div_,
                                             span_, td_, tr_)
 import           Lucid.Htmx                (hxGet_)
 import           Prelude                   hiding (id)
-import           Router                    (GenericResponse, PageResponse,
-                                            getRoute)
-import           Servant                   (Get, Header, (:>))
+import           Router                    (PageResponse, getRoute)
+import           Servant                   (Get, Header, (:-), (:>))
 import           Servant.HTML.Lucid        (HTML)
 import           Servant.Htmx              (HXRequest)
+import           Servant.Server.Generic    (AsServerT)
 import           State                     (AppM)
 
-type ProductsRouter =
-  "products" :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+newtype ProductsApi mode = ProductsApi
+  { getProducts :: mode :- "products" :> Header "Cookie" Text :> HXRequest :> Get '[HTML] PageResponse
+  } deriving (Generic)
+
+productsApi :: ProductsApi (AsServerT AppM)
+productsApi = ProductsApi
+  { getProducts = getRoute "/products" content
+  }
 
 content :: AppM (Html ())
 content = do
@@ -52,6 +60,3 @@ postItem (WpPost {id = cId, name = cName, categories = cCategories, price = cPri
   where
     categoryItem :: Cat.WpCategory -> Html ()
     categoryItem (Cat.WpCategory {Cat.name = cat}) = span_ [class_ "px-2 py-1 bg-red-200 text-red-800 rounded-md mr-1"] $ toHtml cat
-
-productsRouter :: GenericResponse
-productsRouter = getRoute "/products" content

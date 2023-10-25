@@ -1,19 +1,22 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Routes.Categories (CategoriesRouter, categoriesRouter) where
+module Routes.Categories (CategoriesApi, categoriesApi) where
 
 import           Components.Product.SaveForm (drawCategories)
 import           Data.Text                   (Text)
 import           Data.WC.Category            (WpCategory)
+import           GHC.Generics                (Generic)
 import           Http                        (getWpResponse)
 import           Lucid                       (Html, ToHtml (toHtml))
 import           Servant                     (Get, Header, Headers, addHeader,
-                                              (:>))
+                                              (:-), (:>))
 import           Servant.HTML.Lucid          (HTML)
+import           Servant.Server.Generic      (AsServerT)
 import           State                       (AppM)
 
 -- type HXReswap = Header "HX-Reswap" Text
@@ -26,10 +29,12 @@ import           State                       (AppM)
 -- categoriesRouter :: GenericResponse :<|> (CategoryForm -> AppM AddCategoryHandlerResponse)
 -- categoriesRouter = getRoute "/categories" content :<|> addCategory
 
-type CategoriesRouter = "categories" :> "wp" :> Get '[HTML] GetCategories
+newtype CategoriesApi mode = CategoriesApi
+  { _getCategories :: mode :- "categories" :> "wp" :> Get '[HTML] GetCategories
+  } deriving (Generic)
 
-categoriesRouter :: AppM GetCategories
-categoriesRouter = getCategories
+categoriesApi :: CategoriesApi (AsServerT AppM)
+categoriesApi = CategoriesApi { _getCategories = getCategories }
 
 type GetCategories = Headers '[Header "Cache-Control" String] (Html ())
 
