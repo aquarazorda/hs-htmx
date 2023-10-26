@@ -18,8 +18,8 @@ menuItems =
 
     ( "Discogs"
     ,
-      [ ("Add new", "add-product", plusIcon)
-      , ("Folders", "folders", foldersIcon)
+      [ ("Add new", "/add-product", plusIcon)
+      , ("Folders", "/folders", foldersIcon)
       ]
     )
   ]

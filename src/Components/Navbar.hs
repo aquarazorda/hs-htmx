@@ -35,7 +35,7 @@ navItem browserPath (text, path, icon) =
     (Just ButtonGhost)
     (Just ButtonSmall)
     ( [class_ $ "navitem w-full justify-start current:bg-secondary/80" <> if isRouteActive path browserPath then " active" else ""]
-        <> navChangeAttrs ("/" <> path)
+        <> navChangeAttrs path
     )
     $ do
       icon [class_ "mr-2 h-4 w-4"]
