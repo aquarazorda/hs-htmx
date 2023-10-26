@@ -2,9 +2,15 @@
 
 module Data.Discogs.Search where
 
-import Data.Aeson (FromJSON (parseJSON), withObject, (.:))
+import Data.Aeson (FromJSON (parseJSON), withObject, (.!=), (.:), (.:?))
 import Data.Discogs.Folders (DcPagination (..))
 import Data.Text (Text)
+
+data SearchRequestParams = SearchRequestParams
+  { searchQuery :: Text
+  , searchType :: Text
+  , searchPerPage :: Int
+  }
 
 data DcSearchRelease = DcSearchRelease
   { dcSearchRelCountry :: Text
@@ -21,11 +27,14 @@ instance FromJSON DcSearchRelease where
       <$> v
       .: "country"
       <*> v
-      .: "year"
+      .:? "year"
+      .!= "0"
       <*> v
-      .: "catno"
+      .:? "catno"
+      .!= ""
       <*> v
-      .: "cover_image"
+      .:? "cover_image"
+      .!= ""
       <*> v
       .: "id"
       <*> v

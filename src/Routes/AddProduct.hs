@@ -35,7 +35,7 @@ productItemList q = case q of
   Just query -> if query == empty then pure "" else withQuery query
  where
   withQuery query = do
-    (res :: Maybe DcSearchRes) <- getDcResponse $ "/database/search?type=release&per_page=50&q=" <> query
+    (res :: Maybe DcSearchRes) <- getDcResponse $ "/database/search?type=release&per_page=50&query=" <> query
     case res of
       Nothing -> pure "Can't find any product"
       Just f -> pure $ foldl' (<>) "" (fmap drawItem (dcSearchResults f))

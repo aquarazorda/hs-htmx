@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Http (getManager, getWpResponse, getDcResponse, postWp) where
+module Http (getManager, getWpResponse, getDcResponse, postWp, encodeUrl) where
 
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Reader (ask)
@@ -15,7 +15,7 @@ import Data.Either (fromRight)
 import Data.Function ((&))
 import Data.String (IsString)
 import Data.Text (Text, unpack)
-import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Network.HTTP.Client
   ( Manager
   , httpLbs
@@ -29,6 +29,7 @@ import Network.HTTP.Simple
   , setRequestHeaders
   , setRequestMethod
   )
+import Network.HTTP.Types (urlEncode)
 import State
   ( AppM
   , State (dcToken, wp)
@@ -40,6 +41,9 @@ getManager = newManager tlsManagerSettings
 
 getHeaders :: IsString a => Text -> Text -> [(a, ByteString)]
 getHeaders preToken token = [("Authorization", encodeUtf8 $ preToken <> token), ("User-Agent", "Morevi/0.1")]
+
+encodeUrl :: Text -> Text
+encodeUrl = decodeUtf8 . urlEncode False . encodeUtf8
 
 getResponse :: FromJSON a => Text -> Text -> Text -> AppM (Maybe a)
 getResponse preToken token path = do
