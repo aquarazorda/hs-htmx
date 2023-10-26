@@ -36,7 +36,7 @@ routePage cookies path content = do
   doctype_
   head_ $ do
     meta_ [charset_ "utf-8"]
-    meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
+    meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1, maximum-scale=1"]
     useHtmx
     script_ [src_ "https://unpkg.com/hyperscript.org@0.9.11"] ("" :: Html ())
     link_ [rel_ "stylesheet", href_ "/public/styles.css"]
