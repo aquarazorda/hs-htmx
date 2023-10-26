@@ -44,6 +44,7 @@ import Htmx (hxDisinherit_, navChangeAttrs)
 import Http (getDcResponse)
 import Lucid
   ( Html
+  , autofocus_
   , blockquote_
   , class_
   , div_
@@ -222,4 +223,4 @@ productSaveForm price page condition folderId queryString releaseId = do
             p_ [id_ "error-message", class_ "hidden text-red-600 self-end"] "You're missing something."
             div_ [class_ "flex w-full"] $ do
               cnButton (Just ButtonDestructive) (Just ButtonSmall) backNav "Back"
-              cnBtn [id_ "submit-button", class_ "ml-auto", type_ "submit"] "Save"
+              cnBtn [id_ "submit-button", class_ "ml-auto", type_ "submit", autofocus_] "Save"

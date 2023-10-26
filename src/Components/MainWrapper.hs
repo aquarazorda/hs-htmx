@@ -27,6 +27,7 @@ import Lucid
   , rel_
   , script_
   , src_
+  , type_
   )
 import Lucid.Htmx (useHtmx)
 import Web.Cookie (CookiesText)
@@ -43,6 +44,7 @@ routePage cookies path content = do
     link_ [rel_ "preconnect", href_ "https://fonts.googleapis.com"]
     link_ [rel_ "preconnect", href_ "https://fonts.gstatic.com", crossorigin_ ""]
     link_ [rel_ "stylesheet", href_ "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"]
+    link_ [rel_ "icon", type_ "image/x-icon", href_ "https://morevi.ge/favicon.ico"]
   body_
     [ class_ $ "font-sans antialiased" <> if isDarkMode then " dark" else ""
     , id_ "body"

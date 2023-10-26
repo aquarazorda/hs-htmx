@@ -50,9 +50,10 @@ import Lucid
   , loading_
   , span_
   , src_
+  , tabindex_
   )
 import Lucid.Htmx (hxHeaders_)
-import Lucid.Hyperscript (withAutoFocus)
+import Lucid.Hyperscript (withAutoFocus, __)
 import Router.Helpers (GenericResponse, getRoute, toUrlPiece_)
 import Servant (fieldLink)
 import Servant.Server.Generic (AsServerT)
@@ -166,13 +167,21 @@ folderContent folderId page = do
   tableHeaders = [TableHeader "" "", TableHeader "Title" "", TableHeader "Genres" "", TableHeader "Year" "", TableHeader "Actions" ""]
   drawItem :: DcRelease -> Html ()
   drawItem item = do
-    tableRow_ ([class_ "cursor-pointer", id_ relId] <> relNav) $ do
-      tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20", loading_ "lazy"]
-      tableCell_ [class_ "max-w-md truncate"] $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
-      tableCell_ [class_ "max-w-md truncate"] $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
-      tableCell_ $ toHtml (show $ dcYear basicInfo)
-      tableCell_ $ div_ [] $ do
-        cnBtn relNav "Add"
+    tableRow_
+      ( [ class_ "cursor-pointer"
+        , id_ relId
+        , tabindex_ "0"
+        , __ "on keyup if event.keyCode is 32 halt the event then trigger click"
+        ]
+          <> relNav
+      )
+      $ do
+        tableCell_ $ img_ [src_ $ pack (dcThumb basicInfo), class_ "w-20 h-20", loading_ "lazy"]
+        tableCell_ [class_ "max-w-md truncate"] $ toHtml (getFullTitle (dcTitle basicInfo) (dcArtists basicInfo))
+        tableCell_ [class_ "max-w-md truncate"] $ toHtml (getGenres (dcGenres basicInfo) (dcStyles basicInfo))
+        tableCell_ $ toHtml (show $ dcYear basicInfo)
+        tableCell_ $ div_ [] $ do
+          cnBtn (tabindex_ "-1" : relNav) "Add"
    where
     basicInfo = dcReleaseBasicInformation item
     relId = pack $ show (dcId basicInfo)
