@@ -2,31 +2,44 @@
 
 module Http (getManager, getWpResponse, getDcResponse, postWp) where
 
-import           Control.Monad.IO.Class     (MonadIO (liftIO))
-import           Control.Monad.Trans.Reader (ask)
-import           Data.Aeson                 (FromJSON, ToJSON, decode,
-                                             eitherDecode)
-import           Data.ByteString.Internal   (ByteString)
-import           Data.Either                (fromRight)
-import           Data.Function              ((&))
-import           Data.String                (IsString)
-import           Data.Text                  (Text, unpack)
-import           Data.Text.Encoding         (encodeUtf8)
-import           Network.HTTP.Client        (Manager, httpLbs, newManager,
-                                             parseRequest_)
-import           Network.HTTP.Conduit       (tlsManagerSettings)
-import           Network.HTTP.Simple        (getResponseBody,
-                                             setRequestBodyJSON,
-                                             setRequestHeaders,
-                                             setRequestMethod)
-import           State                      (AppM, State (dcToken, wp),
-                                             WpEnv (wpToken, wpUrl))
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Trans.Reader (ask)
+import Data.Aeson
+  ( FromJSON
+  , ToJSON
+  , decode
+  , eitherDecode
+  )
+import Data.ByteString.Internal (ByteString)
+import Data.Either (fromRight)
+import Data.Function ((&))
+import Data.String (IsString)
+import Data.Text (Text, unpack)
+import Data.Text.Encoding (encodeUtf8)
+import Network.HTTP.Client
+  ( Manager
+  , httpLbs
+  , newManager
+  , parseRequest_
+  )
+import Network.HTTP.Conduit (tlsManagerSettings)
+import Network.HTTP.Simple
+  ( getResponseBody
+  , setRequestBodyJSON
+  , setRequestHeaders
+  , setRequestMethod
+  )
+import State
+  ( AppM
+  , State (dcToken, wp)
+  , WpEnv (wpToken, wpUrl)
+  )
 
 getManager :: IO Manager
 getManager = newManager tlsManagerSettings
 
 getHeaders :: IsString a => Text -> Text -> [(a, ByteString)]
-getHeaders preToken token = [("Authorization",  encodeUtf8 $ preToken <> token), ("User-Agent", "Morevi/0.1")]
+getHeaders preToken token = [("Authorization", encodeUtf8 $ preToken <> token), ("User-Agent", "Morevi/0.1")]
 
 getResponse :: FromJSON a => Text -> Text -> Text -> AppM (Maybe a)
 getResponse preToken token path = do
@@ -37,7 +50,7 @@ getResponse preToken token path = do
   let decoded = eitherDecode (getResponseBody res)
   pure $ fromRight Nothing decoded
 
-postResponse :: (ToJSON a, FromJSON b)=> Text -> Text -> Text -> a -> AppM (Maybe b)
+postResponse :: (ToJSON a, FromJSON b) => Text -> Text -> Text -> a -> AppM (Maybe b)
 postResponse preToken token path json = do
   manager <- liftIO getManager
   let reqHeaders = getHeaders preToken token

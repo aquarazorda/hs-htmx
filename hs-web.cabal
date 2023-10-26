@@ -43,6 +43,7 @@ library
       Components.Table.Simple
       Data.Discogs.Folders
       Data.Discogs.Release
+      Data.Discogs.Search
       Data.Nav
       Data.Postgres.Category
       Data.Postgres.Label
@@ -61,6 +62,7 @@ library
       Routes.Home
       Routes.Products
       State
+      Types.Api
       Utils
   other-modules:
       Paths_hs_web
